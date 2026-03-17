@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fondos / Capas oscuras */
+  --color-forest-deep: #0b100b;      /* Fondo principal */
+  --color-forest-dark: #040604;      /* Fondo Sidebar/Layout */
+  --color-forest-dark-alt: #0a0f0a;  /* Fondo Inputs/Secc. Alt */
+  --color-forest-card: #060906;      /* Fondo Tarjetas/Avatares */
+  --color-forest-stat: #121a12;      /* Fondo Stats/Pills */
+
+  /* Bordes y Líneas */
+  --color-forest-border: #1f2e1f;    /* Bordes generales */
+  --color-forest-border-faint: #1f2e1f66; /* Bordes sutiles (40%) */
+
+  /* Colores de Acento (Verdes) */
+  --color-forest-accent: #22c55e;       /* Verde vibrante */
+  --color-forest-accent-mid: #5eb669;   /* Verde medio (Tags) */
+  --color-forest-accent-dark: #1c7e42;  /* Verde oscuro (Hover/Tooltips) */
+  
+  /* Textos */
+  --color-forest-light: #e8f5e8;        /* Texto principal (casi blanco) */
+  --color-forest-muted: #6b8a6b;        /* Texto secundario/muted */
+  --color-forest-muted-alt: #7d9b7d;    /* Texto informativo */
+  --color-forest-placeholder: #383d38;  /* Placeholder inputs */
+}
+
+html, body {
+  max-width: 100%;
+}
+
+
+@layer utilities {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--color-forest-dark);
+    border-top: 1px solid var(--color-forest-border);
+    height: 80px;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+  }
+
+  @media (min-width: 768px) {
+    .sidebar {
+      top: 0;
+      flex-direction: column;
+      border-top: 0;
+      border-right: 1px solid var(--color-forest-border);
+      height: 100vh;
+      width: 80px;
+      justify-content: start;
+      gap: 30px;
+      padding-top: 24px;
+      
+    }
+  }
+
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
