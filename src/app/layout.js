@@ -3,6 +3,7 @@ import "@/globals.css";
 import SidebarTemplate from "./components/templates/SidebarTemplate";
 import AOSInit from "@/app/hooks/AOSInit";
 
+
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -30,6 +31,19 @@ export default function RootLayout({ children }) {
             {children}
           </SidebarTemplate>
         </NavigationProvider>
+
+        {/* ── PORTAL ROOT ──────────────────────────────────────────────
+            Este div vacío es el DESTINO de todos los React Portals.
+            Los componentes que usen <Portal> se renderizarán AQUÍ,
+            escapando del overflow de sus contenedores padres.
+            
+            ¿Por qué está al final del body?
+            - Para que tenga el z-index más alto naturalmente
+            - Para que no interfiera con el layout de la app
+            - Para que position: fixed funcione sin problemas
+              (no hay ningún padre con transform aquí)
+        */}
+        <div id="portal-root" />
 
       </body>
     </html>

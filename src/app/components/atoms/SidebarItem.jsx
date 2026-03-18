@@ -36,7 +36,7 @@ export default function SidebarItem({
       {icon}
 
       {/* Texto visible en móvil */}
-      {name && <span className="text-[10px] md:hidden">{name}</span>}
+      {name && <span className="text-[10px] md:hidden">{name}</span>} 
 
       {/* Tooltip para escritorio */}
       {name && (
