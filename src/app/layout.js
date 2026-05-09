@@ -1,36 +1,45 @@
 import { Inter } from "next/font/google";
 import "@/globals.css";
-import SidebarTemplate from "./components/templates/SidebarTemplate";
-import AOSInit from "@/app/hooks/AOSInit";
-
+import SidebarTemplate from "@/features/dashboard/components/templates/SidebarTemplate";
+import AOSInit from "@/shared/hooks/AOSInit";
+import { NavigationProvider } from "@/shared/context/NavigationContext";
+import Providers from "@/shared/components/providers/Providers";
 
 const inter = Inter({
   subsets: ["latin"],
 });
 
 export const metadata = {
-  title: "Vyntra Web",
-  description: "Tu hogar en 1000 Comunidade",
+  name: "Vyntra Web",
+  description: "Tu hogar en 1000 Comunidades",
+  openGraph: {
+    name: "Vyntra Web",
+    description: "Tu hogar en 1000 Comunidades",
+    type: "website",
+  },
 };
 
 /**
- * @layout RootLayout
- * @description Diseño maestro global.
- * Se ha simplificado la llamada al Sidebar gracias a la modularización atómica.
+ * Diseño maestro global de la aplicación.
+ * @component RootLayout
+ * @param {Object} props - Propiedades del componente.
+ * @param {React.ReactNode} props.children - Los componentes hijos a renderizar.
+ * @returns {React.ReactElement} La estructura HTML principal.
  */
-import { NavigationProvider } from "./context/NavigationContext";
-
 export default function RootLayout({ children }) {
+  console.log("VS Code Alert Test");
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`bg-forest-dark ${inter.className} antialiased text-white`}>
         <AOSInit />
         
-        <NavigationProvider>
-          <SidebarTemplate>
-            {children}
-          </SidebarTemplate>
-        </NavigationProvider>
+        <Providers>
+          <NavigationProvider>
+            <SidebarTemplate>
+              {children}
+            </SidebarTemplate>
+          </NavigationProvider>
+        </Providers>
 
         {/* ── PORTAL ROOT ──────────────────────────────────────────────
             Este div vacío es el DESTINO de todos los React Portals.
@@ -41,11 +50,13 @@ export default function RootLayout({ children }) {
             - Para que tenga el z-index más alto naturalmente
             - Para que no interfiera con el layout de la app
             - Para que position: fixed funcione sin problemas
-              (no hay ningún padre con transform aquí)
+            - (no hay ningún padre con transform aquí)
         */}
+        
         <div id="portal-root" />
 
       </body>
     </html>
   );
 }
+

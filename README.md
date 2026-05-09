@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+src/
+├── shared/           <-- ¡EL HUB GLOBAL!
+│   ├── components/   # UI (Átomos/Moléculas globales como Badge o Button)
+│   ├── hooks/        # Lógica reutilizable (Detector de móvil, scroll, AOS)
+│   ├── context/      # Estados globales (Navegación, Canal Abierto)
+│   └── utils/        # Funciones de ayuda (Slugify)
+│
+├── features/         # EL CEREBRO (Chat, Clubs, Dashboard, Users)
+│
+└── app/              # EL MAPA (Solo rutas: ClubPage, page.js, layout.js)
 
-## Getting Started
+---
 
-First, run the development server:
+## 🛑 BACKEND MIGRATION CHECKLIST (Reglas Vyne)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Cuando conectemos PostgreSQL + Laravel (Reverb), debemos cumplir con estas directivas obligatorias para mantener la escalabilidad:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [ ] **React Query:** Instalar `@tanstack/react-query`. Prohibido usar `useState` o llamadas estáticas directas para datos. Toda la UI debe leer de la caché.
+- [ ] **UUID Cliente (Bomba Atómica):** El frontend DEBE generar un UUID (`uuidv4`) al crear un mensaje e inyectarlo en la caché antes de enviar al backend. Laravel usará ese ID para evitar duplicación.
+- [ ] **Paginación Infinita (Sin Offsets):** Las listas de mensajes o clubes deben cargarse mediante `useInfiniteQuery` pasando un `cursor` (ej. último UUID), nunca usando el `offset` tradicional.
+- [ ] **Broadcasting Minimalista:** Asegurar que los listeners (Laravel Echo) en el front no muten el estado de React localmente, sino que modifiquen la caché centralizada de React Query.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+# GIT TEST: SI VES ESTO, GIT FUNCIONA.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

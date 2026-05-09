@@ -1,14 +1,25 @@
 "use client";
 
-import DashboardTemplate from "@/app/components/templates/DashboardTemplate";
-import { FEATURED_CLUBS } from "@/app/data/clubs/ClubsDasboard";
-import { CLUB_SECTION_TITLE } from "@/app/data/clubs/ClubSectionTitle";
-export default function Explore() {
+import DashboardTemplate from "@/features/dashboard/components/templates/DashboardTemplate";
+import ClubPreviewModal from "@/features/clubs/components/organisms/ClubPreviewModal";
+import { Suspense } from "react";
+import UserModal from "@/features/users/components/organisms/UserModal";
 
+/**
+ * Página principal de exploración de clubes.
+ * @component Explore
+ * @returns {React.ReactElement} Vista de la plantilla del dashboard.
+ */
+export default function Explore() {
+  console.log("Git Test");
+  console.log("Probando VS Code... random ID: " + Math.random());
   return (
-    <DashboardTemplate
-      featuredClubs={FEATURED_CLUBS}
-      categories={CLUB_SECTION_TITLE}
-    />
+    <>
+      <DashboardTemplate />
+      <Suspense fallback={null}>
+        <ClubPreviewModal  />
+      </Suspense>
+      <UserModal />
+    </>
   );
 }

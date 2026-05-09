@@ -2,34 +2,135 @@
 
 @theme {
   /* Fondos / Capas oscuras */
-  --color-forest-deep: #0b100b;      /* Fondo principal */
-  --color-forest-dark: #040604;      /* Fondo Sidebar/Layout */
-  --color-forest-dark-alt: #0a0f0a;  /* Fondo Inputs/Secc. Alt */
-  --color-forest-card: #060906;      /* Fondo Tarjetas/Avatares */
-  --color-forest-stat: #121a12;      /* Fondo Stats/Pills */
+  --color-forest-deep: #0b100b;
+  --color-forest-dark: #040604;
+  --color-forest-dark-alt: #0a0f0a;
+  --color-forest-card: #060906;
+  --color-forest-stat: #121a12;
 
   /* Bordes y Líneas */
-  --color-forest-border: #1f2e1f;    /* Bordes generales */
-  --color-forest-border-faint: #1f2e1f66; /* Bordes sutiles (40%) */
+  --color-forest-border: #1f2e1f;
+  --color-forest-border-faint: #1f2e1f66;
 
   /* Colores de Acento (Verdes) */
-  --color-forest-accent: #22c55e;       /* Verde vibrante */
-  --color-forest-accent-mid: #5eb669;   /* Verde medio (Tags) */
-  --color-forest-accent-dark: #1c7e42;  /* Verde oscuro (Hover/Tooltips) */
-  
+  --color-forest-accent: #22c55e;
+  --color-forest-accent-mid: #5eb669;
+  --color-forest-accent-dark: #1c7e42;
+
   /* Textos */
-  --color-forest-light: #e8f5e8;        /* Texto principal (casi blanco) */
-  --color-forest-muted: #6b8a6b;        /* Texto secundario/muted */
-  --color-forest-muted-alt: #7d9b7d;    /* Texto informativo */
-  --color-forest-placeholder: #383d38;  /* Placeholder inputs */
+  --color-forest-light: #e8f5e8;
+  --color-forest-muted: #6b8a6b;
+  --color-forest-muted-alt: #7d9b7d;
+  --color-forest-label: #7d9b7da8;
+  --color-forest-placeholder: #383d38;
+
+  /* Colores de Peligro */
+  --color-forest-danger: #c53838;
+  --color-forest-danger-muted: #c5383833;
+
+  /* Text sizes especiales */
+  --font-size-micro: 9px;
+  --font-size-11: 11px;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-13-5: 13.5px;
+  --font-size-15: 15px;
+  --font-size-17: 17px;
+
+  /* Border widths */
+  --border-width-2-5: 2.5px;
+  --border-width-3: 3px;
+
+  /* Spacing específico */
+  --spacing-76: 304px;
+  --spacing-17: 68px;
+
+  /* Anchos Máximos */
+  --width-modal-sm: 360px;
+  --width-modal-md: 400px;
+  --width-modal-lg: 420px;
+
+  /* Radios Personalizados */
+  --radius-club-hover: 14px;
+  --radius-squircle: 24px;
+
+  /* Escalas */
+  --scale-98: 0.98;
+
+  /* Blur especial */
+  --blur-glow: 2px;
+
+  /* Easing personalizado */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Sombras y Glow */
+  --shadow-glow: 0 0 20px rgba(34, 197, 94, 0.3);
+  --shadow-btn-glow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  --shadow-btn-glow-hover: 0 4px 20px rgba(34, 197, 94, 0.5);
+  --shadow-chip-glow: 0 0 15px rgba(34, 197, 94, 0.3);
+  --shadow-card-glow: 0 0 20px rgba(34, 197, 94, 0.1);
+  --shadow-modal: 0 8px 40px rgba(0, 0, 0, 0.6);
 }
 
-html, body {
+html,
+body {
   max-width: 100%;
+  overflow: auto;
 }
 
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 @layer utilities {
+  .text-micro {
+    font-size: var(--font-size-micro);
+  }
+  .text-11 {
+    font-size: var(--font-size-11);
+  }
+  .text-12 {
+    font-size: var(--font-size-12);
+  }
+  .text-13 {
+    font-size: var(--font-size-13);
+  }
+  .text-13-5 {
+    font-size: var(--font-size-13-5);
+  }
+  .text-15 {
+    font-size: var(--font-size-15);
+  }
+  .text-17 {
+    font-size: var(--font-size-17);
+  }
+
+  .border-3 {
+    border-width: var(--border-width-3);
+  }
+
+  .w-76 {
+    width: var(--spacing-76);
+  }
+  .h-17 {
+    height: var(--spacing-17);
+  }
+
+  .blur-glow {
+    filter: blur(var(--blur-glow));
+  }
+
+  .ease-out-expo {
+    transition-timing-function: var(--ease-out-expo);
+  }
+
   .sidebar {
     position: fixed;
     bottom: 0;
@@ -57,16 +158,16 @@ html, body {
       justify-content: start;
       gap: 30px;
       padding-top: 24px;
-      
     }
   }
 
-  /* Ocultar scrollbar pero mantener funcionalidad */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
   .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
+
+/* trigger rebuild */
