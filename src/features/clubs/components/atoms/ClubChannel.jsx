@@ -2,38 +2,49 @@
 
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Settings } from "lucide-react";
+import { useQueryString } from "@/shared/hooks/useQueryString";
+
+import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
+import { PERMISSIONS } from "@/shared/constants/permissions";
 
 /**
  * @component ClubChannel
  * @description Átomo que representa un botón de acceso a un canal individual de chat.
- * Maneja estados visuales de selección y disparadores de cambio de contexto de canal.
- *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.name - Nombre del canal a mostrar.
- * @param {number} props.i - Posición ordinal en la lista para coordinar animaciones Framer Motion.
- * @param {string} props.uuid - Identificador exclusivo del canal para la gestión de estados globales.
- * @returns {JSX.Element} Botón interactivo animado con estilos condicionales.
  */
-export default function ClubChannel({ name, i, uuid, active }) {
+export default function ClubChannel({ name, i, uuid, category_uuid, active, club_uuid }) {
   const params = useParams();
   const router = useRouter();
+  const { createQueryString } = useQueryString();
+
+  // ── PROTECCIÓN DE PERMISOS (BITWISE) ──
+  const canManageChannels = useCheckPermission(club_uuid, PERMISSIONS.MANAGE_CHANNELS);
+
+  // URL para el modal de editar canal
+  const editChannelHref = createQueryString({
+    edit_channel: uuid,
+    edit_channel_cat: category_uuid || null,
+  });
 
   const handleNavigation = () => {
-    router.push(`/ClubPage/${params.uuid}/${uuid}`);
+    router.push(`/ClubPage/${params.uuid || club_uuid}/${uuid}`);
   };
 
   return (
     <>
-      <motion.button
-        onClick={handleNavigation}
+      <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "easeOut", stiffness: 100, damping: 30 * i }}
-        className={`group ${
+        className={`group relative flex h-8 w-full items-center justify-between rounded-lg transition-colors duration-200 ease-in-out ${
           active ? "bg-forest-stat" : "hover:bg-forest-deep"
-        } flex h-8 w-full cursor-pointer flex-row items-center gap-2 rounded-lg transition-colors duration-200 ease-in-out`}
+        }`}
       >
-        <div className="group flex flex-row gap-2">
+        <button
+          onClick={handleNavigation}
+          className="flex h-full flex-1 cursor-pointer items-center gap-2"
+        >
           <div
             className={`${
               active
@@ -66,12 +77,26 @@ export default function ClubChannel({ name, i, uuid, active }) {
               active
                 ? "text-forest-light"
                 : "text-forest-muted"
-            }  group-hover:text-forest-light text-sm font-medium transition-colors duration-200 ease-in-out`}
+            }  group-hover:text-forest-light truncate pr-2 text-sm font-medium transition-colors duration-200 ease-in-out`}
           >
             {name}
           </p>
-        </div>
-      </motion.button>
+        </button>
+
+        {/* Botón de configuración (solo en hover Y con permisos) */}
+        {canManageChannels && (
+          <div className="absolute right-1 flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+            <Link
+              href={editChannelHref}
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-forest-muted hover:bg-forest-stat hover:text-forest-light"
+              title="Editar Canal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Settings size={14} />
+            </Link>
+          </div>
+        )}
+      </motion.div>
     </>
   );
 }

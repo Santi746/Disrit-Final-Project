@@ -42,7 +42,9 @@ export class ClubData {
         logo_url,
         created_at,
         owner_uuid,
-        categories = []
+        categories = [],
+        roles = [],
+        members = []
     } = {}) {
         this.uuid = uuid;
         this.name = name;
@@ -57,5 +59,7 @@ export class ClubData {
         this.created_at = created_at;
         this.owner_uuid = owner_uuid;
         this.categories = categories;
+        this.roles = roles;
+        this.members = members;
     }
 }

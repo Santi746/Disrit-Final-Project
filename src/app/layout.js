@@ -4,6 +4,8 @@ import SidebarTemplate from "@/features/dashboard/components/templates/SidebarTe
 import AOSInit from "@/shared/hooks/AOSInit";
 import { NavigationProvider } from "@/shared/context/NavigationContext";
 import Providers from "@/shared/components/providers/Providers";
+import { Toaster } from "sonner";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,17 +29,19 @@ export const metadata = {
  * @returns {React.ReactElement} La estructura HTML principal.
  */
 export default function RootLayout({ children }) {
-  console.log("VS Code Alert Test");
   return (
     <html lang="es">
-      <body className={`bg-forest-dark ${inter.className} antialiased text-white`}>
+      <body className={`bg-forest-dark ${inter.className} antialiased text-white`} suppressHydrationWarning>
         <AOSInit />
         
         <Providers>
+          <Toaster position="bottom-right" richColors theme="dark" />
           <NavigationProvider>
-            <SidebarTemplate>
-              {children}
-            </SidebarTemplate>
+            <Suspense fallback={null}>
+              <SidebarTemplate>
+                {children}
+              </SidebarTemplate>
+            </Suspense>
           </NavigationProvider>
         </Providers>
 

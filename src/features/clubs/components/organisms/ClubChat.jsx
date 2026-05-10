@@ -2,7 +2,8 @@
 
 import ClubChatHeader from "@/features/clubs/components/organisms/ClubChatHeader";
 import ChatInfo from "@/features/clubs/components/organisms/ChatInfo";
-import ChatInput from "@/features/chat/components/molecules/ChatInput";
+import ChatInput from "@/shared/components/ui/organisms/messaging/ChatInput";
+import { useReplyStore } from "@/features/chat/stores/useReplyStore";
 
 /**
  * @typedef {import("@/features/chat/data/chat_messages").ChatMessage} ChatMessage
@@ -21,6 +22,7 @@ import ChatInput from "@/features/chat/components/molecules/ChatInput";
  * @returns {JSX.Element} Un contenedor de sección flex-col optimizado para visualización de chat.
  */
 export default function ClubChat({
+  clubUuid,
   channelName,
   channelDescription,
   messages,
@@ -28,9 +30,13 @@ export default function ClubChat({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  channelUuid,
 }) {
+
+  const { replyingTo, clearReply } = useReplyStore();
+  
   return (
-    <section className="bg-forest-deep flex h-screen w-full flex-1 flex-col">
+    <section className="bg-forest-deep flex h-screen flex-1 min-w-0 flex-col">
       {/* Header: título del canal + acciones */}
       <ClubChatHeader
         channelName={channelName}
@@ -49,7 +55,13 @@ export default function ClubChat({
       />
 
       {/* Input de chat pegado al fondo */}
-      <ChatInput channelName={channelName} />
+      <ChatInput 
+        clubUuid={clubUuid}
+        channelName={channelName} 
+        channelUuid={channelUuid} 
+        replyingTo={replyingTo} 
+        onCloseReply={clearReply} 
+      />
     </section>
   );
 }

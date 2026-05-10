@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 /**
  * Átomo que renderiza un ícono de engranaje (Settings).
  * Anima una rotación de 90° al hacer hover usando Framer Motion.
- * @component Config
+ * @component SettingsIcon
  * @returns {React.ReactElement} Icono SVG animado.
  */
-export default function Config() {
+export default function SettingsIcon() {
   return (
     <>
       <motion.svg

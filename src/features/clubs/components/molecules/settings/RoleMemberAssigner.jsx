@@ -4,6 +4,22 @@ import { Search } from "lucide-react";
 import SettingsInput from "@/shared/components/ui/atoms/SettingsInput";
 import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
 
+/**
+ * El componente RoleMemberAssigner permite asignar un rol específico a los miembros del servidor.
+ * Cuenta con una barra de búsqueda para filtrar miembros y una lista de candidatos para la asignación.
+ * 
+ * @component
+ * @param {Object} props - Propiedades del componente
+ * @param {Object} props.selectedRole - El objeto de rol que se va a asignar.
+ * @param {string} props.selectedRole.name - Nombre del rol.
+ * @param {string} props.selectedRole.color - Color del rol.
+ * @param {string} props.searchTerm - La consulta de búsqueda actual para filtrar miembros.
+ * @param {Function} props.setSearchTerm - Setter para el término de búsqueda.
+ * @param {boolean} props.isPending - Indica si los datos de los miembros se están cargando actualmente.
+ * @param {Array<Object>} props.filteredUsers - Lista de usuarios que coinciden con los criterios de búsqueda.
+ * @param {Function} props.handleAssignRole - Callback disparado cuando se selecciona un usuario para la asignación del rol. Recibe (uuid, name).
+ * @returns {JSX.Element}
+ */
 export default function RoleMemberAssigner({
   selectedRole,
   searchTerm,
@@ -12,6 +28,8 @@ export default function RoleMemberAssigner({
   filteredUsers,
   handleAssignRole,
 }) {
+
+
   return (
     <div className="bg-forest-card border border-forest-border rounded-xl p-6 flex flex-col">
       <h3 className="text-sm font-bold text-forest-light mb-4 flex items-center gap-2">

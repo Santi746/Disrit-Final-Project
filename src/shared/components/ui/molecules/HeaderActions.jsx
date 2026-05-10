@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRightSidebarStore } from "@/features/clubs/stores/useRightSidebarStore";
 
 /**
  * Molécula: Grupo de acciones del header del chat.
@@ -10,8 +11,9 @@ import { motion } from "framer-motion";
  * @returns {React.ReactElement}
  */
 export default function HeaderActions() {
+    const { toggleMembersSidebar } = useRightSidebarStore();
 
-    /** @type {Array<{label: string, icon: React.ReactElement}>} */
+    /** @type {Array<{label: string, icon: React.ReactElement, onClick?: () => void}>} */
     const actions = [
         {
             label: "Buscar",
@@ -41,6 +43,7 @@ export default function HeaderActions() {
                     <path d="M16 3.13a4 4 0 010 7.75" />
                 </svg>
             ),
+            onClick: toggleMembersSidebar
         },
     ];
 
@@ -54,6 +57,7 @@ export default function HeaderActions() {
                     className="cursor-pointer text-forest-muted hover:text-forest-light p-2 rounded-lg hover:bg-forest-stat transition-colors duration-200"
                     aria-label={action.label}
                     type="button"
+                    onClick={action.onClick}
                 >
                     {action.icon}
                 </motion.button>

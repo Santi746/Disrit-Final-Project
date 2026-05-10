@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 
 /**
  * @component SettingsButton
- * @description Botón para la sección de configuración.
+ * @description Botón reutilizable para las secciones de configuración.
  *
- * @param {string} children - Contenido.
- * @param {string} variant - "primary", "secondary", "danger"
- * @param {function} onClick - Click handler.
- * @param {string} className - Clases adicionales.
+ * @param {React.ReactNode} children - Contenido del botón.
+ * @param {"primary"|"secondary"|"danger"} variant - Variante visual.
+ * @param {() => void} [onClick] - Handler de click.
+ * @param {string} [className] - Clases CSS adicionales.
+ * @param {string} [type] - Tipo de botón HTML.
+ * @param {boolean} [disabled] - Deshabilitar el botón.
  */
 export default function SettingsButton({
   children,
@@ -16,8 +18,9 @@ export default function SettingsButton({
   onClick,
   className = "",
   type = "button",
+  disabled = false,
 }) {
-  const baseStyles = "px-4 py-2 rounded-[3px] font-medium text-sm transition-all duration-200 cursor-pointer";
+  const baseStyles = "px-4 py-2 rounded-[3px] font-medium text-sm transition-all duration-200";
   
   const variants = {
     primary: "bg-forest-accent hover:bg-forest-accent-mid text-black shadow-btn-glow hover:shadow-btn-glow-hover",
@@ -28,9 +31,10 @@ export default function SettingsButton({
   return (
     <motion.button
       type={type}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
+      whileTap={disabled ? {} : { scale: 0.98 }}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variants[variant]} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"} ${className}`}
     >
       {children}
     </motion.button>

@@ -1,6 +1,14 @@
 import { ClubData } from "@/features/clubs/types/club_data";
 import { categories } from "@/features/clubs/data/categories";
+import { ROLES_TABLE } from "@/features/clubs/data/roles_table";
 
+/**
+ * VIDEOJUEGOS_CLUBS contiene una lista de clubes ficticios categorizados bajo videojuegos.
+ * Cada club es una instancia de la clase ClubData.
+ * 
+ * @constant
+ * @type {Array<import("@/features/clubs/types/club_data").ClubData>}
+ */
 export const VIDEOJUEGOS_CLUBS = [
   new ClubData({
     uuid: "club_004",
@@ -16,8 +24,13 @@ export const VIDEOJUEGOS_CLUBS = [
     is_verified: true,
     logo_url: "/descargar.png",
     created_at: "2023",
-    owner_uuid: "usr_rel_4521",
+    owner_uuid: "usr_master_7842", // El usuario maestro es el dueño
     categories: categories,
+    roles: ROLES_TABLE,
+    members: [
+      { user_uuid: "usr_master_7842", roles_ids: ["role_owner"] },
+      { user_uuid: "usr_rel_4521", roles_ids: ["role_admin"] },
+    ],
   }),
   new ClubData({
     uuid: "club_005",

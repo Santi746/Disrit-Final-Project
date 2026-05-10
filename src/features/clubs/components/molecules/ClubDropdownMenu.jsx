@@ -3,38 +3,52 @@
 import { motion } from "framer-motion";
 import DropdownItem from "@/shared/components/ui/atoms/DropdownItem";
 import { clubDropdownItems } from "@/features/clubs/data/dropdown_items";
-import { useRouter, usePathname, useSearchParams, useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { useQueryString } from "@/shared/hooks/useQueryString";
+import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
 
 /**
  * @component ClubDropdownMenu (Molecule)
  * @description Menú desplegable del club con acciones contextuales.
- * Renderiza ítems data-driven mapeando el array de `clubDropdownItems`.
- * Animado con Framer Motion (opacidad + desplazamiento Y).
- *
+ * Ahora incluye protección de permisos (Vyne Architecture).
  */
 export default function ClubDropdownMenu() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const params = useParams();
+  const { createQueryString } = useQueryString();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="border-forest-border bg-forest-dark absolute top-[96%] right-2.5 left-2.5 z-50 mt-1.5 flex flex-col gap-0.5 rounded-lg border p-1.5 shadow-lg shadow-black/60"
+      className="bg-forest-card shadow-forest-glow border-forest-border-faint absolute top-16 left-4 z-50 w-[270px] overflow-hidden rounded-xl border"
     >
-      {clubDropdownItems
-        .map((item) => {
+      <div className="flex flex-col p-1.5">
+        {clubDropdownItems.map((item, index) => {
+          // ── PROTECCIÓN DE PERMISOS (BITWISE) ──
+          // Usamos el hook para decidir si este usuario puede ver la opción.
+          const hasActionPermission = useCheckPermission(params.uuid, item.permission);
+
+          if (!hasActionPermission && item.permission !== 0n) {
+            return null; // El usuario no tiene el bit necesario
+          }
+
+          if (item.type === "separator") {
+            return (
+              <div
+                key={`sep-${index}`}
+                className="bg-forest-border-faint my-1 h-px w-full"
+              />
+            );
+          }
+
           const handleClick = () => {
             if (item.uuid === "settings") {
-              const current = new URLSearchParams(
-                Array.from(searchParams.entries()),
-              );
-              current.set("settings", "true");
-              router.push(`${pathname}?${current.toString()}`);
+              router.push(createQueryString("settings", "true"));
+            } else if (item.uuid === "create_category") {
+              router.push(createQueryString("create_category", "true"));
             } else {
               console.log(`Acción: ${item.uuid}`);
             }
@@ -54,6 +68,7 @@ export default function ClubDropdownMenu() {
             </div>
           );
         })}
+      </div>
     </motion.div>
   );
 }

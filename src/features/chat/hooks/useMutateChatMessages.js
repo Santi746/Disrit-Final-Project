@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { generateClientUUID } from "@/shared/utils/uuid";
 import { MASTER_USER } from "@/features/users/data/users_table";
+import { toast } from "sonner";
 
 /**
  * @file useMutateChatMessages.js
@@ -11,22 +12,28 @@ export function useMutateChatMessages(channel_uuid) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ content, client_uuid }) => {
+    mutationFn: async ({ content, client_uuid, reply_to_uuid }) => {
       // ❌ [Vyne-Delete-On-Backend]: Borrar simulación
       await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Simulación de error aleatorio (50% de probabilidad) para probar el rollback (borrar en integracion con back end)
+      if (Math.random() < 0.5) {
+        throw new Error("No se pudo conectar con el servidor");
+      }
       
       return {
-        uuid: client_uuid, // Retornamos el MISMO UUID inyectado
+        uuid: client_uuid,
         content,
         sender_uuid: MASTER_USER.uuid,
         username: MASTER_USER.username,
         avatar_url: MASTER_USER.avatar_url,
         created_at: new Date().toISOString(),
+        reply_to_uuid, // El backend guardará esto
       };
     },
 
     // ✅ [Vyne-Keep]: TODO LO DE ABAJO ES ARQUITECTURA.
-    onMutate: async ({ content, client_uuid }) => {
+    onMutate: async ({ content, client_uuid, replyTo }) => {
       // 1. Cancelamos cualquier refetch saliente
       await queryClient.cancelQueries({ queryKey: ['messages', channel_uuid] });
 
@@ -42,6 +49,7 @@ export function useMutateChatMessages(channel_uuid) {
         content,
         created_at: new Date().toISOString(),
         status: 'sending',
+        replyTo, // Inyectamos el objeto visual para que la UI lo pinte YA
       };
 
     queryClient.setQueryData(['messages', channel_uuid], (oldData) => {
@@ -52,8 +60,13 @@ export function useMutateChatMessages(channel_uuid) {
       
       // Mapeamos las páginas para inyectar el mensaje optimista en la última página
       const newPages = [...oldData.pages];
-      const lastPageIndex = newPages.length - 1;
-      newPages[lastPageIndex] = { ...newPages[lastPageIndex], messages: [...newPages[lastPageIndex].messages, optimisticMessage]};
+
+      // Luego actualizamos la primera página (la más nueva)
+      newPages[0] = { 
+        ...newPages[0], 
+        messages: [optimisticMessage, ...newPages[0].messages] 
+      };
+
 
       return { ...oldData, pages: newPages };
 
@@ -65,7 +78,9 @@ export function useMutateChatMessages(channel_uuid) {
 
     // CICLO DE VIDA: onError (Revertir si falla)
     onError: (err, newContent, context) => {
-      console.error("Error enviando mensaje, revirtiendo caché:", err);
+      toast.error("Error al enviar el mensaje", {
+        description: err.message || "Inténtalo de nuevo más tarde",
+      });
       queryClient.setQueryData(['messages', channel_uuid], context.previousMessages);
     },
 

@@ -6,6 +6,7 @@ import { useChatMessages } from "@/features/chat/hooks/useChatMessages";
 import { useActiveChannel } from "@/features/clubs/hooks/useActiveChannel";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import ClubSettingsTemplate from "@/features/clubs/components/templates/ClubSettingsTemplate";
+import ClubPageLoadingSkeleton from "@/features/clubs/components/atoms/ClubPageLoadingSkeleton";
 
 /**
  * @page ClubPage
@@ -15,7 +16,6 @@ import ClubSettingsTemplate from "@/features/clubs/components/templates/ClubSett
  * @returns {JSX.Element} La estructura de la página que contiene el organismo ClubChat.
  */
 export default function ClubPage() {
-  console.log("Git Test: Chat Page");
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -33,16 +33,14 @@ export default function ClubPage() {
   /* Se busca los mensajes del canal por uuid */
   const { data: messagesData, isLoading: isLoadingMessages, fetchNextPage, hasNextPage, isFetchingNextPage } = useChatMessages(channel?.uuid);
   
+  /* Esto obtiene todos los mensaje que se trajo de la data*/
   const messages = messagesData?.pages.flatMap(page => page.messages) || [];
 
-  /* Manejo de estados de carga y error (Regla de Oro de UX) */
+  /* Skeleton de carga mientras se resuelven los datos del canal/club */
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-forest-900 text-forest-muted">
-        <div className="animate-pulse">Cargando club...</div>
-      </div>
-    );
+    return <ClubPageLoadingSkeleton />;
   }
+
 
   if (isError || !club) {
     return (
@@ -55,8 +53,10 @@ export default function ClubPage() {
   return (
     <>
       <ClubChat
-        channelName={channel.clubTitle}
+        clubUuid={club.uuid}
+        channelName={channel.name}
         channelDescription={channel.description}
+        channelUuid={channel.uuid}
         messages={messages}
         isLoadingMessages={isLoadingMessages}
         fetchNextPage={fetchNextPage}

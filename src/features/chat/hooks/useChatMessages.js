@@ -12,8 +12,8 @@ export function useChatMessages(channel_uuid) {
   return useInfiniteQuery({
     queryKey: ['messages', channel_uuid],
     queryFn: async ({ pageParam }) => {
-      // Simulación de latencia de red
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Simulación de latencia de red: 1500ms inicial, 1200ms para paginación de historial
+      await new Promise((resolve) => setTimeout(resolve, pageParam ? 1200 : 1500));
 
       const allMessages = channel_uuid ? getMessagesByChannel(channel_uuid) : [];
       let messages = [];
@@ -30,6 +30,15 @@ export function useChatMessages(channel_uuid) {
       const nextCursor = messages.length > 0 && messages[0].uuid !== allMessages[0].uuid 
         ? messages[0].uuid 
         : null;
+
+      if (messages.length === 0) return {
+        messages: [],
+        nextCursor: null
+      };
+
+      // Invertir para normalizar la data de "Nuevo a Viejo" (Index 0 = Newest)
+      // Esto elimina la deuda técnica y permite que el componente solo consuma
+      messages.reverse();
 
       return { messages, nextCursor };
     },

@@ -6,11 +6,15 @@ import { searchFiltersData } from "@/features/dashboard/data/searchFilters";
 import { useSearchClubs } from "@/features/dashboard/hooks/useSearchClubs";
 import ClubCard from "@/features/clubs/components/molecules/ClubCard";
 import UserCard from "@/features/users/components/molecules/UserCard";
+import InfiniteScrollTrigger from "@/shared/components/ui/atoms/InfiniteScrollTrigger";
+import ClubCardSkeleton from "@/features/clubs/components/atoms/ClubCardSkeleton";
+import UserCardSkeleton from "@/features/users/components/atoms/UserCardSkeleton";
 
 /**
  * @component SearchingResults
  * @description Muestra la interfaz de resultados de búsqueda real.
  * Renderiza tarjetas de clubes filtradas dinámicamente desde la caché de React Query.
+ * Implementa scroll infinito para resultados masivos.
  *
  * @param {Object} props
  * @param {string} props.searchTerm - Término de búsqueda debounced.
@@ -18,7 +22,18 @@ import UserCard from "@/features/users/components/molecules/UserCard";
  */
 export default function SearchingResults({ searchTerm = "" }) {
   const [activeFilter, setActiveFilter] = useState("all");
-  const { data: results, isLoading } = useSearchClubs(searchTerm, activeFilter);
+  const { 
+    data: resultsData, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useSearchClubs(searchTerm, activeFilter);
+
+  // Aplanamos las páginas para obtener una lista única
+  const results = resultsData?.pages.flatMap(page => page.results) || [];
+  // Usamos el totalCount de la primera página para el contador
+  const totalCount = resultsData?.pages[0]?.totalCount || 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,7 +42,7 @@ export default function SearchingResults({ searchTerm = "" }) {
           {searchTerm ? `Resultados para "${searchTerm}"` : "Explorar todo"}
         </h1>
         <p className="text-forest-muted text-sm">
-          {results?.length || 0} comunidades encontradas
+          {totalCount} comunidades encontradas
         </p>
       </div>
 
@@ -80,11 +95,12 @@ export default function SearchingResults({ searchTerm = "" }) {
               exit={{ opacity: 0 }}
               className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-forest-card/50 border-forest-border/30 h-64 animate-pulse rounded-2xl border"
-                />
+              {[...Array(8)].map((_, i) => (
+                activeFilter === "users" ? (
+                  <UserCardSkeleton key={i} />
+                ) : (
+                  <ClubCardSkeleton key={i} />
+                )
               ))}
             </motion.div>
           ) : results && results.length > 0 ? (
@@ -171,8 +187,19 @@ export default function SearchingResults({ searchTerm = "" }) {
                   )}
                 </div>
               )}
+              
+              {/* Sensor de Scroll Infinito para la búsqueda */}
+              {hasNextPage && !isLoading && (
+                <div className="pt-8">
+                  <InfiniteScrollTrigger
+                    onTrigger={fetchNextPage}
+                    hasMore={hasNextPage}
+                    isLoading={isFetchingNextPage}
+                  />
+                </div>
+              )}
             </motion.div>
-          ) : (
+          ) : searchTerm ? (
             <motion.div
               key="empty-state"
               initial={{ opacity: 0 }}
@@ -187,11 +214,16 @@ export default function SearchingResults({ searchTerm = "" }) {
                 No hay coincidencias
               </h3>
               <p className="text-forest-muted mt-1 max-w-xs italic">
-                {searchTerm
-                  ? `No pudimos encontrar ${activeFilter === "all" ? "nada" : activeFilter} relacionado con "${searchTerm}".`
-                  : "Escribe algo para empezar a buscar comunidades increíbles."}
+                No pudimos encontrar {activeFilter === "all" ? "nada" : activeFilter} relacionado con "{searchTerm}".
               </p>
             </motion.div>
+          ) : (
+            /* Estado Inicial: Skeletons sutiles mientras el usuario no escribe */
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 opacity-40 grayscale-[0.5]">
+               {[...Array(4)].map((_, i) => (
+                  <ClubCardSkeleton key={`initial-${i}`} />
+               ))}
+            </div>
           )}
         </AnimatePresence>
       </motion.div>

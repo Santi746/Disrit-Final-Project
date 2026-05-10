@@ -2,11 +2,26 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 
+/**
+ * El componente OwnerWarningModal muestra una advertencia crítica antes de asignar 
+ * el rol de 'Owner' a un miembro. Este rol otorga control total sobre el servidor.
+ * 
+ * @component
+ * @param {Object} props - Propiedades del componente
+ * @param {Object|null} props.ownerWarningUser - El objeto de usuario para quien se muestra la advertencia. Si es null, el modal se oculta.
+ * @param {string} props.ownerWarningUser.uuid - Identificador único del usuario.
+ * @param {string} props.ownerWarningUser.name - Nombre a mostrar del usuario.
+ * @param {Function} props.setOwnerWarningUser - Función para resetear/cerrar el modal de advertencia.
+ * @param {Function} props.confirmAssign - Función callback ejecutada cuando el usuario confirma la asignación. Recibe (uuid, name).
+ * @returns {JSX.Element|null}
+ */
 export default function OwnerWarningModal({
   ownerWarningUser,
   setOwnerWarningUser,
   confirmAssign,
 }) {
+
+
   if (!ownerWarningUser) return null;
 
   return (

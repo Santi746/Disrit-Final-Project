@@ -9,44 +9,42 @@ import RolesSettings from "../organisms/settings/RolesSettings";
 import BansSettings from "../organisms/settings/BansSettings";
 import { createPortal } from "react-dom";
 
+import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
+import { PERMISSIONS } from "@/shared/constants/permissions";
+
 const CATEGORIES = [
-  { id: "profile", label: "Perfil de servidor", group: "General" },
-  { id: "members", label: "Miembros", group: "Personas" },
-  { id: "roles", label: "Roles", group: "Personas" },
-  { id: "bans", label: "Baneos", group: "Moderación" },
+  { id: "profile", label: "Perfil de servidor", group: "General", permission: PERMISSIONS.MANAGE_CLUB },
+  { id: "members", label: "Miembros", group: "Personas", permission: PERMISSIONS.MANAGE_ROLES },
+  { id: "roles", label: "Roles", group: "Personas", permission: PERMISSIONS.MANAGE_ROLES },
+  { id: "bans", label: "Baneos", group: "Moderación", permission: PERMISSIONS.BAN_MEMBERS },
 ];
 
 /**
  * @component ClubSettingsTemplate
  * @description Plantilla principal para la vista de configuración del club (servidor).
- * Gestiona el layout responsivo (mobile-first), la barra lateral de navegación
- * entre las distintas secciones de configuración, y encapsula la vista dentro de un React Portal.
- * 
- * En dispositivos móviles, implementa un flujo de navegación de dos pasos (Menú -> Contenido).
- * En escritorio, muestra el diseño clásico de barra lateral a la izquierda y contenido a la derecha.
- *
- * @param {Object} props - Propiedades
- * @param {Object} props.club - Objeto con la información actual del club.
- * @param {Function} props.onClose - Función callback para cerrar la vista de configuración.
- * @returns {React.ReactPortal|null}
  */
 export default function ClubSettingsTemplate({ club, onClose }) {
   const [activeTab, setActiveTab] = useState("profile");
   const [showMobileMenu, setShowMobileMenu] = useState(true);
   const [mounted, setMounted] = useState(false);
 
+  // ── HOOKS DE PERMISOS PARA CADA CATEGORÍA ──
+  // Nota: En una app real, esto se podría optimizar, pero para claridad lo hacemos explícito.
+  const canManageClub = useCheckPermission(club?.uuid, PERMISSIONS.MANAGE_CLUB);
+  const canManageRoles = useCheckPermission(club?.uuid, PERMISSIONS.MANAGE_ROLES);
+  const canBanMembers = useCheckPermission(club?.uuid, PERMISSIONS.BAN_MEMBERS);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // ESC para cerrar
+  // Seleccionar una pestaña válida por defecto si no tiene permiso para 'profile'
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+    if (!canManageClub) {
+      if (canManageRoles) setActiveTab("members");
+      else if (canBanMembers) setActiveTab("bans");
+    }
+  }, [canManageClub, canManageRoles, canBanMembers]);
 
   // Renderiza el contenido según la tab
   const renderContent = () => {
@@ -64,8 +62,15 @@ export default function ClubSettingsTemplate({ club, onClose }) {
     }
   };
 
-  // Agrupa las categorías
+  // Agrupa las categorías filtrando por permisos
   const groupedCategories = CATEGORIES.reduce((acc, cat) => {
+    const hasPerm = 
+      (cat.id === "profile" && canManageClub) ||
+      ((cat.id === "members" || cat.id === "roles") && canManageRoles) ||
+      (cat.id === "bans" && canBanMembers);
+
+    if (!hasPerm) return acc;
+
     if (!acc[cat.group]) acc[cat.group] = [];
     acc[cat.group].push(cat);
     return acc;

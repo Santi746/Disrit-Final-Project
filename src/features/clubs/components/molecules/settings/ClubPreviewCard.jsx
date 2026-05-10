@@ -1,6 +1,23 @@
 import React from "react";
 
+/**
+ * El componente ClubPreviewCard muestra una vista previa estilizada de un club (servidor).
+ * Muestra el banner, el logo, el nombre y los contadores de miembros en un formato similar
+ * a como aparece en las vistas de descubrimiento o perfiles.
+ * 
+ * @component
+ * @param {Object} props - Propiedades del componente
+ * @param {Object} props.club - Objeto con los datos del club
+ * @param {string} [props.club.banner_url] - URL de la imagen del banner del club
+ * @param {string} [props.club.logo_url] - URL de la imagen del logo del club
+ * @param {number} [props.club.online_count] - Número de miembros en línea
+ * @param {number} [props.club.members_count] - Número total de miembros
+ * @param {string} props.name - El nombre a mostrar del club (a menudo reactivo a cambios en inputs)
+ * @returns {JSX.Element}
+ */
 export default function ClubPreviewCard({ club, name }) {
+
+
   return (
     <div className="w-full lg:w-72 shrink-0">
       <label className="text-xs font-bold tracking-widest uppercase text-forest-muted mb-2 block">

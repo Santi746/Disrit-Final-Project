@@ -1,6 +1,13 @@
 import { ClubData } from "@/features/clubs/types/club_data";
 import { categories } from "@/features/clubs/data/categories";
 
+/**
+ * NEGOCIOS_CLUBS contiene una lista de clubes ficticios categorizados bajo negocios.
+ * Cada club es una instancia de la clase ClubData.
+ * 
+ * @constant
+ * @type {Array<import("@/features/clubs/types/club_data").ClubData>}
+ */
 export const NEGOCIOS_CLUBS = [
     new ClubData({
         uuid: "club_034",

@@ -8,7 +8,27 @@
  * - Canales: uuid, category_id, name, description, type (text, voice), order
  */
 
+/**
+ * La constante categories almacena la estructura jerárquica de un club,
+ * incluyendo las categorías y sus canales anidados.
+ * 
+ * @constant
+ * @type {Array<Object>}
+ * @property {string} uuid - Identificador único de la categoría.
+ * @property {string} name - Nombre a mostrar de la categoría.
+ * @property {number} order - Orden de visualización dentro del club.
+ * @property {boolean} [is_private] - Indica si la categoría es restringida.
+ * @property {Array<Object>} channels - Lista de canales que pertenecen a esta categoría.
+ * @property {string} channels[].uuid - Identificador único del canal.
+ * @property {string} channels[].name - Nombre a mostrar del canal.
+ * @property {string} channels[].description - Breve descripción del propósito del canal.
+ * @property {string} channels[].type - Tipo de canal (ej., 'text', 'voice', 'announcement').
+ * @property {number} channels[].order - Orden de visualización dentro de la categoría.
+ * @property {boolean} [channels[].is_private] - Indica si el canal es restringido.
+ */
 export const categories = [
+
+
     {
         uuid: "category-001", 
         name: "General 🌍",

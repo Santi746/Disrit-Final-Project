@@ -9,6 +9,7 @@ import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useMobileDetector from "@/shared/hooks/mobileDetector";
+import DashboardSkeleton from "@/features/dashboard/components/atoms/DashboardSkeleton";
 
 /**
  * @component DashboardTemplate
@@ -39,16 +40,11 @@ export default function DashboardTemplate({ className = "" }) {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  /* Skeleton completo del dashboard mientras cargan los datos */
   if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-forest-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-          <p className="text-forest-muted animate-pulse font-medium">Sincronizando con Vyne...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
+
 
   if (isError) {
     return (

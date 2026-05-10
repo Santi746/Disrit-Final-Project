@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { generateClientUUID } from '@/shared/utils/uuid';
+
 
 /**
  * @hook useMutateClubRoles
@@ -42,16 +42,22 @@ export function useMutateClubRoles(club_uuid) {
 
   // MUTACIÓN: Actualizar Rol
   const updateMutation = useMutation({
-    mutationFn: async (updatedRole) => {
+    mutationFn: async ({ client_uuid, ...updatedRole }) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      return updatedRole;
+      // Convertimos permisos a string para evitar problemas de serialización JSON en el futuro
+      if (updatedRole.permissions !== undefined) {
+        updatedRole.permissions = updatedRole.permissions.toString();
+      }
+      return { ...updatedRole, client_uuid };
     },
-    onMutate: async (updatedRole) => {
+    onMutate: async ({ client_uuid, ...updatedRole }) => {
       await queryClient.cancelQueries({ queryKey: ['club_roles', club_uuid] });
       const previousRoles = queryClient.getQueryData(['club_roles', club_uuid]);
 
       queryClient.setQueryData(['club_roles', club_uuid], (old) => 
-        old?.map(role => role.uuid === updatedRole.uuid ? { ...role, ...updatedRole } : role)
+        old?.map(role => role.uuid === updatedRole.uuid 
+          ? { ...role, ...updatedRole, status: 'sending', client_uuid } 
+          : role)
       );
 
       return { previousRoles };
@@ -64,38 +70,67 @@ export function useMutateClubRoles(club_uuid) {
     }
   });
 
-  // MUTACIÓN: Asignar Rol a Miembro (Solución Punto 3)
+  // MUTACIÓN: Asignar Rol a Miembro
   const assignMutation = useMutation({
-    mutationFn: async ({ userUuid, roleUuid }) => {
+    mutationFn: async ({ client_uuid, userUuid, roleUuid }) => {
       await new Promise((resolve) => setTimeout(resolve, 400));
-      return { userUuid, roleUuid };
+      return { userUuid, roleUuid, client_uuid };
     },
     onMutate: async ({ userUuid, roleUuid }) => {
+      // 1. Cancelamos queries para evitar sobrescrituras
       await queryClient.cancelQueries({ queryKey: ['club_members', club_uuid] });
+      await queryClient.cancelQueries({ queryKey: ['club', club_uuid] });
+
       const previousMembers = queryClient.getQueryData(['club_members', club_uuid]);
+      const previousClub = queryClient.getQueryData(['club', club_uuid]);
 
-      queryClient.setQueryData(['club_members', club_uuid], (old) => 
-        old?.map(user => 
-          user.uuid === userUuid 
-            ? { ...user, roles: [...(user.roles || []), roleUuid] } 
-            : user
-        )
-      );
+      // 2. Actualizamos la lista paginada de miembros (Sidebar / Ajustes)
+      queryClient.setQueryData(['club_members', club_uuid], (old) => {
+        if (!old || !old.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map(page => ({
+            ...page,
+            members: page.members.map(user => {
+              if (user.uuid !== userUuid) return user;
+              const currentRoles = user.roles_ids || [];
+              if (currentRoles.includes(roleUuid)) return user;
+              return { ...user, roles_ids: [...currentRoles, roleUuid] };
+            })
+          }))
+        };
+      });
 
-      return { previousMembers };
+      // 3. Actualizamos el objeto club principal (Fuente para useCheckPermission)
+      queryClient.setQueryData(['club', club_uuid], (old) => {
+        if (!old || !old.members) return old;
+        return {
+          ...old,
+          members: old.members.map(member => {
+            if (member.user_uuid !== userUuid) return member;
+            const currentRoles = member.roles_ids || [];
+            if (currentRoles.includes(roleUuid)) return member;
+            return { ...member, roles_ids: [...currentRoles, roleUuid] };
+          })
+        };
+      });
+
+      return { previousMembers, previousClub };
     },
     onError: (err, vars, context) => {
-      queryClient.setQueryData(['club_members', club_uuid], context.previousMembers);
+      if (context.previousMembers) queryClient.setQueryData(['club_members', club_uuid], context.previousMembers);
+      if (context.previousClub) queryClient.setQueryData(['club', club_uuid], context.previousClub);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['club_members', club_uuid] });
+      queryClient.invalidateQueries({ queryKey: ['club', club_uuid] });
     }
   });
 
   return { 
     mutateCreate: createMutation.mutateAsync, 
-    mutateUpdate: updateMutation.mutate,
-    mutateAssign: assignMutation.mutate,
+    mutateUpdate: updateMutation.mutateAsync,
+    mutateAssign: assignMutation.mutateAsync,
     isPending: createMutation.isPending || updateMutation.isPending || assignMutation.isPending,
     isError: createMutation.isError || updateMutation.isError || assignMutation.isError
   };

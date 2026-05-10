@@ -1,6 +1,20 @@
 import { users } from "@/features/users/types/user_data";
 
+/**
+ * BANNED_USERS_TABLE contiene datos ficticios de usuarios que han sido baneados de un club.
+ * Cada entrada incluye el identificador único del baneo, el motivo, la marca de tiempo 
+ * y los datos del usuario asociado.
+ * 
+ * @constant
+ * @type {Array<Object>}
+ * @property {string} ban_uuid - Identificador único para el registro de baneo.
+ * @property {string} reason - Explicación detallada de por qué el usuario fue baneado.
+ * @property {string} banned_at - Marca de tiempo ISO 8601 de cuándo ocurrió el baneo.
+ * @property {Object} user - Una instancia de la clase users que contiene detalles del miembro.
+ */
 export const BANNED_USERS_TABLE = [
+
+
   {
     ban_uuid: "ban_1",
     reason: "Uso de lenguaje inapropiado y faltas de respeto reiteradas.",

@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Fondos / Capas oscuras */
-  --color-forest-deep: #0b100b;
-  --color-forest-dark: #040604;
-  --color-forest-dark-alt: #0a0f0a;
-  --color-forest-card: #060906;
-  --color-forest-stat: #121a12;
+  /* Fondos / Capas mapeados a variables dinámicas */
+  --color-forest-deep: var(--t-deep);
+  --color-forest-dark: var(--t-dark);
+  --color-forest-dark-alt: var(--t-dark-alt);
+  --color-forest-card: var(--t-card);
+  --color-forest-stat: var(--t-stat);
 
   /* Bordes y Líneas */
-  --color-forest-border: #1f2e1f;
-  --color-forest-border-faint: #1f2e1f66;
+  --color-forest-border: var(--t-border);
+  --color-forest-border-faint: var(--t-border-f);
 
   /* Colores de Acento (Verdes) */
-  --color-forest-accent: #22c55e;
-  --color-forest-accent-mid: #5eb669;
-  --color-forest-accent-dark: #1c7e42;
+  --color-forest-accent: var(--t-accent);
+  --color-forest-accent-mid: var(--t-accent-mid);
+  --color-forest-accent-dark: var(--t-accent-dark);
 
   /* Textos */
-  --color-forest-light: #e8f5e8;
-  --color-forest-muted: #6b8a6b;
-  --color-forest-muted-alt: #7d9b7d;
-  --color-forest-label: #7d9b7da8;
-  --color-forest-placeholder: #383d38;
+  --color-forest-light: var(--t-light);
+  --color-forest-muted: var(--t-muted);
+  --color-forest-muted-alt: var(--t-muted-alt);
+  --color-forest-label: var(--t-label);
+  --color-forest-placeholder: var(--t-ph);
 
   /* Colores de Peligro */
-  --color-forest-danger: #c53838;
+  --color-forest-danger: var(--t-danger);
   --color-forest-danger-muted: #c5383833;
 
   /* Text sizes especiales */
@@ -90,46 +90,19 @@ body {
 }
 
 @layer utilities {
-  .text-micro {
-    font-size: var(--font-size-micro);
-  }
-  .text-11 {
-    font-size: var(--font-size-11);
-  }
-  .text-12 {
-    font-size: var(--font-size-12);
-  }
-  .text-13 {
-    font-size: var(--font-size-13);
-  }
-  .text-13-5 {
-    font-size: var(--font-size-13-5);
-  }
-  .text-15 {
-    font-size: var(--font-size-15);
-  }
-  .text-17 {
-    font-size: var(--font-size-17);
-  }
+  .text-micro { font-size: var(--font-size-micro); }
+  .text-11 { font-size: var(--font-size-11); }
+  .text-12 { font-size: var(--font-size-12); }
+  .text-13 { font-size: var(--font-size-13); }
+  .text-13-5 { font-size: var(--font-size-13-5); }
+  .text-15 { font-size: var(--font-size-15); }
+  .text-17 { font-size: var(--font-size-17); }
 
-  .border-3 {
-    border-width: var(--border-width-3);
-  }
-
-  .w-76 {
-    width: var(--spacing-76);
-  }
-  .h-17 {
-    height: var(--spacing-17);
-  }
-
-  .blur-glow {
-    filter: blur(var(--blur-glow));
-  }
-
-  .ease-out-expo {
-    transition-timing-function: var(--ease-out-expo);
-  }
+  .border-3 { border-width: var(--border-width-3); }
+  .w-76 { width: var(--spacing-76); }
+  .h-17 { height: var(--spacing-17); }
+  .blur-glow { filter: blur(var(--blur-glow)); }
+  .ease-out-expo { transition-timing-function: var(--ease-out-expo); }
 
   .sidebar {
     position: fixed;
@@ -161,13 +134,77 @@ body {
     }
   }
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
-/* trigger rebuild */
+/* ── Temas de Apariencia (Vyne Essence) ─────────────────────────────── */
+/* 
+ * Definición de variables base y temas. 
+ * Tailwind v4 ahora usará estas variables automáticamente gracias al mapeo en @theme.
+ */
+
+:root {
+  --t-deep:        #0b100b;
+  --t-dark:        #040604;
+  --t-dark-alt:    #0a0f0a;
+  --t-card:        #060906;
+  --t-stat:        #121a12;
+  --t-border:      #1f2e1f;
+  --t-border-f:    #1f2e1f66;
+  --t-muted:       #6b8a6b;
+  --t-muted-alt:   #7d9b7d;
+  --t-label:       #7d9b7da8;
+  --t-ph:          #383d38;
+  --t-light:       #e8f5e8;
+  --t-accent:      #22c55e;
+  --t-accent-mid:  #5eb669;
+  --t-accent-dark: #1c7e42;
+  --t-danger:      #c53838;
+}
+
+:root[data-theme="ocean"] {
+  --t-deep:       #061412;
+  --t-dark:       #030b09;
+  --t-dark-alt:   #081512;
+  --t-card:       #071210;
+  --t-stat:       #0e1f1c;
+  --t-border:     #163028;
+  --t-border-f:   #16302866;
+  --t-muted:      #5a8f7e;
+  --t-muted-alt:  #6ea898;
+  --t-label:      #6ea898a8;
+  --t-ph:         #2a3d38;
+  --t-light:      #d8f0ea;
+}
+
+:root[data-theme="midnight"] {
+  --t-deep:       #050505;
+  --t-dark:       #000000;
+  --t-dark-alt:   #080808;
+  --t-card:       #030303;
+  --t-stat:       #0f0f0f;
+  --t-border:     #1f1f1f;
+  --t-border-f:   #1f1f1f66;
+  --t-muted:      #6b6b6b;
+  --t-muted-alt:  #7d7d7d;
+  --t-label:      #7d7d7da8;
+  --t-ph:         #333333;
+  --t-light:      #f0f0f0;
+}
+
+:root[data-theme="dawn"] {
+  --t-deep:        #18130e;
+  --t-dark:        #1e1812;
+  --t-dark-alt:    #231d15;
+  --t-card:        #1b1610;
+  --t-stat:        #2a211a;
+  --t-border:      #3a2e22;
+  --t-border-f:    #3a2e2266;
+  --t-muted:       #9a8872;
+  --t-muted-alt:   #b09d85;
+  --t-label:       #b09d85a8;
+  --t-ph:          #4a3d2e;
+  --t-light:       #f5ebe0;
+}
+

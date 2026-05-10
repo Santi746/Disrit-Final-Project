@@ -40,3 +40,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# installers and large binaries in public
+public/*.exe
+public/*.msi
+public/*.opdownload
+public/*.dmg
+public/*.pkg
+
+# build logs
+build_output.log

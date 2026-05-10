@@ -38,13 +38,13 @@ export const MOCK_CHAT_MESSAGES = {
             `Mensaje #${i + 1}: ¿Alguien para el Boss final del DLC?`,
             `¡Qué locura de Lore! (Mensaje #${i + 1})`,
             `Build de Inteligencia nivel ${100 + i} recomendada.`,
-            "Praise the Sun! \\[T]/ ",
+            `Praise the Sun! \\[T]/ (Msg #${i + 1})`,
             `Intento #${i + 1} contra Malenia... sigo muriendo.`,
-            "¿Dónde se consigue la lágrima mimética?",
-            "Me encanta el diseño de la capital real.",
-            "Ese invasor tenía una build de sangrado rota.",
-            "¿Alguien tiene runas para tradear?",
-            "¡Acabo de platinar el juego! 🎉"
+            `¿Dónde se consigue la lágrima mimética? (Msg #${i + 1})`,
+            `Me encanta el diseño de la capital real. (Msg #${i + 1})`,
+            `Ese invasor tenía una build de sangrado rota. (Msg #${i + 1})`,
+            `¿Alguien tiene runas para tradear? (Msg #${i + 1})`,
+            `¡Acabo de platinar el juego! 🎉 (Msg #${i + 1})`
         ];
         return {
             uuid: `msg-mocked-${String(i + 1).padStart(3, "0")}`,
@@ -72,6 +72,10 @@ export const MOCK_CHAT_MESSAGES = {
             avatar_url: MASTER_USER.avatar_url,
             content: "Para PvP lo mejor sigue siendo la build de Sangrado con las Katanas Gemelas del Ríos de Sangre.",
             created_at: "2026-05-03T19:15:00Z",
+            replyTo: {
+              username: MASTER_USER.username,
+              content: "Aquí comparto mi build de Fuerza pura..."
+            }
         },
     ],
     "category-003-channel-003": [

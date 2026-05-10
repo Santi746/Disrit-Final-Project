@@ -15,26 +15,27 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import ClubPreviewModalSkeleton from "@/features/clubs/components/atoms/ClubPreviewModalSkeleton";
 
 /**
- * Mapa de iconos para las tarjetas de estadÃ­sticas.
+ * Mapa de iconos para las tarjetas de estadísticas.
  * Se usa un Map para resolver el icono correcto por key sin necesidad de .filter().
  */
 
 /**
  * @component ClubPreviewModal
  * @description Modal de preview de un club estilo "Quick View".
- * Se muestra automÃ¡ticamente con animaciÃ³n fade-in/scale-up al montar el componente.
- * Consume el DTO `CLUB_MODAL_DATA` que reutiliza campos existentes del catÃ¡logo de clubes.
+ * Se muestra automáticamente con animación fade-in/scale-up al montar el componente.
+ * Consume el DTO `CLUB_MODAL_DATA` que reutiliza campos existentes del catálogo de clubes.
  *
  * Secciones:
- * - logo_url con iniciales + botÃ³n cerrar
- * - TÃ­tulo + badge verificado
+ * - logo_url con iniciales + botón cerrar
+ * - Título + badge verificado
  * - Tags (pills)
- * - DescripciÃ³n
- * - 3 tarjetas de estadÃ­sticas (Miembros, Activos Hoy, Creado)
+ * - Descripción
+ * - 3 tarjetas de estadísticas (Miembros, Activos Hoy, Creado)
  * - Creador del club (avatar_url + nombre + corona)
- * - BotÃ³n "Unirse al Club"
+ * - Botón "Unirse al Club"
  *
  * @returns {JSX.Element}
  */
@@ -70,13 +71,15 @@ export default function ClubPreviewModal() {
     return null;
   }
 
+  // Skeleton mientras carga el club — ya no es un null vacío
   if (isClubPending) {
-    return null; // O un skeleton de carga
+    return <ClubPreviewModalSkeleton />;
   }
 
   if (isClubError || !club) {
     return null;
   }
+
 
   const STAT_ICONS = new Map([
     ["members_count", Users],

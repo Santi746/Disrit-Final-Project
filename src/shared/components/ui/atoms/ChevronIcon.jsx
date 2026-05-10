@@ -5,12 +5,12 @@ import { motion } from "framer-motion";
 /**
  * Átomo que renderiza una flecha Chevron que indica visualmente el estado expandido/contraído.
  * Anima la rotación de 0° a 90° según el prop isExpanded.
- * @component Flech
+ * @component ChevronIcon
  * @param {Object} props - Propiedades del componente.
  * @param {boolean} props.isExpanded - Estado que determina la rotación de la flecha (90° si expandido).
  * @returns {React.ReactElement} Icono SVG Chevron animado con Framer Motion.
  */
-export default function Flech({ isExpanded }) {
+export default function ChevronIcon({ isExpanded }) {
   return (
     <>
       <motion.svg

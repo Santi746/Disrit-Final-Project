@@ -1,16 +1,34 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
 
+/**
+ * El componente RoleListSidebar muestra una lista de roles y un formulario de creación rápida.
+ * Permite seleccionar un rol para editar sus detalles y crear nuevos roles personalizados.
+ * 
+ * @component
+ * @param {Object} props - Propiedades del componente
+ * @param {Array<Object>} props.roles - Array de objetos de rol a mostrar.
+ * @param {Object|null} props.selectedRole - El objeto de rol actualmente seleccionado.
+ * @param {Function} props.setSelectedRole - Setter para el rol seleccionado.
+ * @param {string} props.newRoleName - Valor del estado para el nombre del nuevo rol que se está creando.
+ * @param {Function} props.setNewRoleName - Setter para el nombre del nuevo rol.
+ * @param {string} props.newRoleColor - Valor del estado para el color del nuevo rol.
+ * @param {Function} props.setNewRoleColor - Setter para el color del nuevo rol.
+ * @param {Function} props.handleCreateRole - Handler para disparar la creación de un nuevo rol.
+ * @returns {JSX.Element}
+ */
 export default function RoleListSidebar({
   roles,
-  selectedRole,
-  setSelectedRole,
+  selectedRoleUuid,
+  setSelectedRoleUuid,
   newRoleName,
   setNewRoleName,
   newRoleColor,
   setNewRoleColor,
   handleCreateRole,
 }) {
+
+
   return (
     <div className="w-full lg:w-64 flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -21,16 +39,16 @@ export default function RoleListSidebar({
         {roles.map((role) => (
           <div 
             key={role.uuid}
-            onClick={() => setSelectedRole(role)}
+            onClick={() => setSelectedRoleUuid(role.uuid)}
             className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-              selectedRole?.uuid === role.uuid 
+              selectedRoleUuid === role.uuid 
                 ? "bg-forest-accent/10 border border-forest-accent/30" 
                 : "hover:bg-forest-stat border border-transparent"
             }`}
           >
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color }} />
-              <span className={`text-sm font-medium ${selectedRole?.uuid === role.uuid ? "text-forest-light" : "text-forest-muted-alt"}`}>
+              <span className={`text-sm font-medium ${selectedRoleUuid === role.uuid ? "text-forest-light" : "text-forest-muted-alt"}`}>
                 {role.name}
               </span>
             </div>
@@ -48,9 +66,9 @@ export default function RoleListSidebar({
         <h4 className="text-xs font-bold text-forest-muted uppercase">Crear Rol Personalizado</h4>
         <input 
           type="text" 
-          placeholder="Nombre del rol (sin espacios)" 
+          placeholder="Nombre del rol" 
           value={newRoleName}
-          onChange={(e) => setNewRoleName(e.target.value.replace(/\s/g, ''))}
+          onChange={(e) => setNewRoleName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleCreateRole()}
           className="bg-forest-stat border border-forest-border rounded p-1.5 text-xs text-forest-light focus:outline-none focus:border-forest-accent"
         />

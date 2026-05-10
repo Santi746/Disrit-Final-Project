@@ -49,7 +49,7 @@ export default function ClubCard({ club }) {
   }
 
   return (
-    <Link href={`/?preview=${club.uuid}`}>
+    <Link href={`/?preview=${club.uuid}`} scroll={false}>
       <div className="group border-forest-border bg-forest-deep hover:border-forest-accent/50 hover:shadow-card-glow relative w-full cursor-pointer overflow-hidden rounded-2xl border transition-[border-color,box-shadow] duration-300">
       {/* BANNER: Imagen de fondo con gradiente suave inferior */}
       <div className="relative h-28 w-full overflow-hidden">

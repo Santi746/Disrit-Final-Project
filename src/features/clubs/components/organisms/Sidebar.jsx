@@ -21,9 +21,10 @@ import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
  * @component Sidebar
  * @returns {React.ReactElement}
  */
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useNavigation } from "@/shared/context/NavigationContext";
 import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
+import { useQueryString } from "@/shared/hooks/useQueryString";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -31,6 +32,21 @@ export default function Sidebar() {
   const { toggleClub, isClubOpen } = useNavigation();
   // [MIGRATION-MARK: REACT-QUERY] Hook a migrar
   const { data: currentUser } = useCurrentUser();
+  const { createQueryString } = useQueryString();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const isNotificationsOpen = searchParams.get("notifications") === "true";
+
+  const toggleNotifications = () => {
+    const url = createQueryString("notifications", isNotificationsOpen ? null : "true");
+    router.replace(url, { scroll: false });
+  };
+
+  const openSettings = () => {
+    const url = createQueryString("settings", "user");
+    router.replace(url, { scroll: false });
+  };
 
   return (
     <>
@@ -78,6 +94,8 @@ export default function Sidebar() {
         icon={<FiMessageSquare size={24} />}
         name="Mensajes"
         className="flex"
+        onClick={() => router.push("/channels/@me")}
+        active={pathname.startsWith("/channels/@me") || pathname.startsWith("/channels/%40me")}
       />
 
       {/* 6. Buscar (Solo PC) */}
@@ -92,6 +110,8 @@ export default function Sidebar() {
         icon={<FiBell size={24} />}
         name="Notificaciones"
         className="mt-auto hidden md:flex"
+        onClick={toggleNotifications}
+        active={isNotificationsOpen}
       />
 
       {/* 8. Ajustes (Solo PC) */}
@@ -106,6 +126,8 @@ export default function Sidebar() {
         }
         name="Ajustes"
         className="hidden md:flex"
+        onClick={openSettings}
+        active={searchParams.get("settings") === "user"}
       />
 
       {/* 9. Más (Solo móvil) */}

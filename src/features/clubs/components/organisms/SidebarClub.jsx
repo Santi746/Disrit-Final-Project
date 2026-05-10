@@ -10,6 +10,7 @@ import Tooltip from "@/shared/components/ui/molecules/Tooltip";
 import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
 import { slugify } from "@/shared/utils/slug";
 import { useParams } from "next/navigation";
+import { useQueryString } from "@/shared/hooks/useQueryString";
 
 /**
  * Gestor dinámico del sidebar de comunidades (clubes).
@@ -20,20 +21,24 @@ import { useParams } from "next/navigation";
  * @param {boolean} props.isMobile - Indica si la vista actual es móvil.
  * @returns {React.ReactElement} Panel lateral/inferior animado.
  */
-export default function SidebarClub({ isClubOpen, isMobile }) {
+export default function SidebarClub({ isClubOpen, isMobile, clubSidebarLayout }) {
+  const { createQueryString } = useQueryString();
+  
   //  ESTADO PARA EL TOOLTIP 
   const [hoveredClub, setHoveredClub] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
+  const isVerticalMobile = isMobile && clubSidebarLayout === "vertical";
+
   // Configuraciones dinámicas basadas en el dispositivo
   const containerVariants = {
     hidden: isMobile
-      ? { opacity: 0, height: 0, y: 40 }
+      ? isVerticalMobile ? { opacity: 0, width: 0 } : { opacity: 0, height: 0, y: 40 }
       : { opacity: 0, width: 0 },
     visible: isMobile
-      ? { opacity: 1, height: "70px", y: 0 }
+      ? isVerticalMobile ? { opacity: 1, width: "70px" } : { opacity: 1, height: "70px", y: 0 }
       : { opacity: 1, width: "78px" },
-    exit: isMobile ? { opacity: 0, height: 0, y: 0 } : { opacity: 0, width: 0 },
+    exit: isMobile ? (isVerticalMobile ? { opacity: 0, width: 0 } : { opacity: 0, height: 0, y: 0 }) : { opacity: 0, width: 0 },
   };
 
   // ─── HANDLERS DE HOVER ──────────────────────────────────────────────
@@ -81,7 +86,9 @@ export default function SidebarClub({ isClubOpen, isMobile }) {
             transition={{ duration: 0.4, ease: "circOut" }}
             className={`bg-forest-dark-alt border-forest-border fixed z-50 ${
               isMobile
-                ? "bottom-20 left-0 w-full flex-row items-center justify-start gap-4 overflow-y-hidden border-t px-4"
+                ? isVerticalMobile
+                  ? "top-0 left-0 h-[calc(100vh-80px)] w-[70px] flex-col items-center overflow-x-clip border-r py-4 pt-4"
+                  : "bottom-20 left-0 w-full flex-row items-center justify-start gap-4 overflow-y-hidden border-t px-4"
                 : "top-0 left-20 h-screen flex-col items-center overflow-x-clip border-r py-6 pt-6.5"
             } flex shrink-0`}
             // ── NUEVO: Limpiar tooltip al salir del sidebar entero ──
@@ -91,7 +98,7 @@ export default function SidebarClub({ isClubOpen, isMobile }) {
           >
             {/* logo_url Principal / Indicador de Clubs */}
             <div
-              className={`relative flex ${isMobile ? "flex-row" : "flex-col"} items-center`}
+              className={`relative flex ${isMobile && !isVerticalMobile ? "flex-row" : "flex-col"} items-center`}
             >
               <div className="group flex h-10 w-10 items-center justify-center transition-all duration-300 md:h-12 md:w-12">
                 <div className="text-forest-accent group-hover:text-forest-accent-light flex scale-100 items-center justify-center transition-transform duration-300 group-hover:scale-110">
@@ -100,13 +107,13 @@ export default function SidebarClub({ isClubOpen, isMobile }) {
               </div>
               {/* Línea divisoria estilo Discord */}
               <div
-                className={`bg-forest-border ${isMobile ? "mx-3 h-8 w-0.5" : "mt-2 mb-4 h-0.5 w-8"} rounded-full`}
+                className={`bg-forest-border ${isMobile && !isVerticalMobile ? "mx-3 h-8 w-0.5" : "mt-2 mb-4 h-0.5 w-8"} rounded-full`}
               />
             </div>
 
             {/* Lista de Clubes (Simulados) */}
             <div
-              className={`flex ${isMobile ? "no-scrollbar flex-row overflow-x-auto" : "flex-col"} gap-4`}
+              className={`flex ${isMobile && !isVerticalMobile ? "no-scrollbar flex-row overflow-x-auto" : "flex-col"} gap-4`}
             >
               {userClubs?.map((tempClub, index) => {
                 // Código Defensivo: Si el club viene incompleto (sin categorías), no rompemos la app.
@@ -153,11 +160,14 @@ export default function SidebarClub({ isClubOpen, isMobile }) {
 
             {/* Botón de Añadir (+) */}
             <div
-              className={`${isMobile ? "ml-auto" : "mt-5"} flex flex-col items-center`}
+              className={`${isMobile && !isVerticalMobile ? "ml-auto" : "mt-5"} flex flex-col items-center`}
             >
-              <div className="border-forest-border hover:border-forest-accent text-forest-muted hover:rounded-club-hover flex h-10 w-10 cursor-pointer items-center justify-center rounded-3xl border-2 border-dashed transition-all duration-300 hover:text-white md:h-12 md:w-12">
+              <Link
+                href={createQueryString("create_club", "true")}
+                className="border-forest-border hover:border-forest-accent text-forest-muted hover:rounded-club-hover flex h-10 w-10 cursor-pointer items-center justify-center rounded-3xl border-2 border-dashed transition-all duration-300 hover:text-white md:h-12 md:w-12"
+              >
                 <span className="text-xl font-light md:text-2xl">+</span>
-              </div>
+              </Link>
             </div>
           </motion.div>
         )}

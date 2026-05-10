@@ -52,6 +52,7 @@ export default function UserAvatar({
   const dotSize = dotSizeMap[size] ?? dotSizeMap.md;
 
   const currentParams = new URLSearchParams(Array.from(searchParams?.entries() || []));
+  currentParams.delete("preview");
   currentParams.set("user", uuid);
   const href = `${pathname}?${currentParams.toString()}`;
 
@@ -61,13 +62,15 @@ export default function UserAvatar({
       scroll={false}
       title={display_name}
       style={zIndex !== undefined ? { zIndex } : undefined}
-      className={`group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-transparent transition-all duration-200 hover:z-20 hover:border-forest-accent/60 ${avatarSize} ${className}`}
+      className={`group relative flex shrink-0 cursor-pointer items-center justify-center transition-all duration-200 hover:z-20 ${avatarSize} ${className}`}
     >
-      <img
-        src={avatar_url}
-        alt={`Avatar de ${display_name}`}
-        className="h-full w-full rounded-full object-cover transition-transform duration-200 group-hover:scale-110"
-      />
+      <div className="h-full w-full overflow-hidden rounded-full border-2 border-transparent transition-all duration-200 group-hover:border-forest-accent/60">
+        <img
+          src={avatar_url}
+          alt={`Avatar de ${display_name}`}
+          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-110"
+        />
+      </div>
       {is_online !== undefined && (
         <span
           className={`border-forest-deep absolute rounded-full border-2 ${dotSize} ${

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import MessageActionButton from "@/features/chat/components/atoms/MessageActionButton";
-import MessageContextMenu from "@/features/chat/components/molecules/MessageContextMenu";
+import MessageActionButton from "@/shared/components/ui/atoms/messaging/MessageActionButton";
+import MessageContextMenu from "@/shared/components/ui/molecules/messaging/MessageContextMenu";
 import useClickClose from "@/shared/hooks/clickClose";
 
 /**

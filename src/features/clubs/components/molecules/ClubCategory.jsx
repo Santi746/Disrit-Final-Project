@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Flech from "@/shared/components/ui/atoms/flech";
+import Link from "next/link";
+import ChevronIcon from "@/shared/components/ui/atoms/ChevronIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import ClubChannel from "@/features/clubs/components/atoms/ClubChannel";
+import { Plus, Settings } from "lucide-react";
+import { useQueryString } from "@/shared/hooks/useQueryString";
+import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
+import { PERMISSIONS } from "@/shared/constants/permissions";
 
 /**
  * Categoría interactiva que contiene una lista de canales. Desplegable y animada.
  * @component ClubCategory
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.name - Nombre de la categoría.
- * @param {Array} props.channels - Array de canales a renderizar dentro de esta categoría.
- * @param {number} props.i - Índice de la categoría para animaciones escalonadas.
- * @returns {React.ReactElement}
  */
 export default function ClubCategory({
+  uuid,
   name,
   channels,
   i,
@@ -24,7 +25,16 @@ export default function ClubCategory({
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const params = useParams();
-  const router = useRouter();
+  const { createQueryString } = useQueryString();
+
+  // ── PROTECCIÓN DE PERMISOS (BITWISE) ──
+  const canManageChannels = useCheckPermission(club_uuid, PERMISSIONS.MANAGE_CHANNELS);
+
+  // URL para el modal de crear canal
+  const createChannelHref = createQueryString("create_channel", uuid);
+
+  // URL para el modal de editar categoría
+  const editCategoryHref = createQueryString("edit_category", uuid);
 
   return (
     <>
@@ -41,18 +51,40 @@ export default function ClubCategory({
         exit={{ opacity: 0, x: -10 }}
         className="flex flex-col gap-1"
       >
-        {/* Nombre de la categoría */}
-        <motion.button
-          onClick={() => setIsExpanded(!isExpanded)}
-          aria-expanded={isExpanded}
-          className="group hover:bg-forest-muted/10 flex w-full flex-row items-center gap-2 rounded-lg px-2 py-1 transition-colors"
-        >
-          {/* svg de flechita que indica si la categoria esta expandida o contraida */}
-          <Flech isExpanded={isExpanded} />
-          <p className="text-forest-label text-xs font-bold tracking-wider uppercase">
-            {name}
-          </p>
-        </motion.button>
+        {/* Nombre de la categoría con hover */}
+        <div className="group flex w-full flex-row items-center justify-between rounded-lg px-2 py-1 transition-colors hover:bg-forest-muted/10">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+            className="flex flex-1 flex-row items-center gap-2 cursor-pointer"
+          >
+            {/* svg de flechita que indica si la categoria esta expandida o contraida */}
+            <ChevronIcon isExpanded={isExpanded} />
+            <p className="text-forest-label text-xs font-bold tracking-wider uppercase">
+              {name}
+            </p>
+          </button>
+
+          {/* Acciones flotantes (solo visibles en hover Y con permisos) */}
+          {canManageChannels && (
+            <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <Link
+                href={editCategoryHref}
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-forest-muted hover:bg-forest-stat hover:text-forest-light"
+                title="Editar Categoría"
+              >
+                <Settings size={14} />
+              </Link>
+              <Link
+                href={createChannelHref}
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-forest-muted hover:bg-forest-stat hover:text-forest-light"
+                title="Crear Canal"
+              >
+                <Plus size={16} />
+              </Link>
+            </div>
+          )}
+        </div>
         {/* Lista de canales de la categoría */}
         <AnimatePresence mode="wait">
           {isExpanded && (
@@ -68,6 +100,7 @@ export default function ClubCategory({
                   key={channel.uuid}
                   name={channel.name}
                   uuid={channel.uuid}
+                  category_uuid={uuid}
                   club_uuid={club_uuid}
                   active={params.channel_uuid === channel.uuid}
                   i={i}
