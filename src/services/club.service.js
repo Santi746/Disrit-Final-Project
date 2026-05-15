@@ -3,6 +3,7 @@ import { ClubsTable } from "@/features/clubs/data/clubs_table";
 import { ROLES_TABLE } from "@/features/clubs/data/roles_table";
 import { getClubsByIdUser } from "@/features/clubs/data/clubs_table";
 import { USERS_TABLE } from "@/features/users/data/users_table";
+import { mockRequest, MOCK_CONFIG } from "@/shared/utils/mock.utils";
 
 /**
  * @service ClubService
@@ -16,7 +17,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Datos de membresía y roles.
    */
   async getMembership(club_uuid, user_uuid) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await mockRequest(MOCK_CONFIG.DELAYS.FAST);
     const user = USERS_TABLE.find(u => u.uuid === user_uuid);
     if (!user) return { status: "success", data: null };
     
@@ -36,7 +37,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Lista de clubes encontrados.
    */
   async getUserClubs(club_uuids) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await mockRequest(MOCK_CONFIG.DELAYS.FAST);
     const clubs = getClubsByIdUser(club_uuids);
     return { status: "success", data: clubs };
   },
@@ -47,7 +48,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Datos del club.
    */
   async getClubByUuid(club_uuid) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     const club = ClubsTable.find((c) => c.uuid === club_uuid);
     if (!club) throw new Error("Club not found");
     return { status: "success", data: club };
@@ -59,7 +60,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Lista de categorías.
    */
   async getCategories(club_uuid) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     const categories = MOCK_CATEGORIES.map((c) => ({ ...c, club_uuid }));
     return { status: "success", data: categories };
   },
@@ -70,7 +71,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Lista de roles.
    */
   async getRoles(club_uuid) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     const roles = ROLES_TABLE.map((r) => ({ ...r, club_uuid }));
     return { status: "success", data: roles };
   },
@@ -82,7 +83,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Lista paginada de miembros.
    */
   async getMembers(club_uuid, pageParam) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     
     if (pageParam) {
       return { status: "success", data: [], meta: { next_cursor: null } };
@@ -141,7 +142,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Categoría creada.
    */
   async createCategory(club_uuid, { client_uuid, name, is_private }) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return {
       status: "success",
       data: {
@@ -163,7 +164,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Categoría actualizada.
    */
   async editCategory(club_uuid, { category_uuid, name, is_private }) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { uuid: category_uuid, club_uuid, name, is_private } };
   },
 
@@ -175,7 +176,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Canal creado.
    */
   async createChannel(club_uuid, category_uuid, { client_uuid, name, type, is_private }) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return {
       status: "success",
       data: {
@@ -197,7 +198,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Canal actualizado.
    */
   async editChannel(club_uuid, { channel_uuid, name, description, is_private }) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { uuid: channel_uuid, club_uuid, name, description, is_private } };
   },
 
@@ -208,7 +209,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Resultado de la eliminación.
    */
   async deleteChannel(club_uuid, channel_uuid) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { uuid: channel_uuid, club_uuid, action: "delete" } };
   },
 
@@ -219,7 +220,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Club actualizado.
    */
   async updateClub(club_uuid, payload) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { uuid: club_uuid, ...payload } };
   },
 
@@ -230,7 +231,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Rol creado.
    */
   async createRole(club_uuid, roleData) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { ...roleData, club_uuid, is_fixed: false } };
   },
 
@@ -241,7 +242,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Rol actualizado.
    */
   async updateRole(club_uuid, roleData) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { ...roleData, club_uuid } };
   },
 
@@ -253,7 +254,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Resultado de la asignación.
    */
   async assignRole(club_uuid, userUuid, roleUuid) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { userUuid, roleUuid, club_uuid } };
   },
 
@@ -263,7 +264,7 @@ export const ClubService = {
    * @returns {Promise<Object>} Club creado.
    */
   async createClub({ client_uuid, name, description, category_tag, logo_url, banner_url, owner_uuid }) {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await mockRequest(MOCK_CONFIG.DELAYS.SLOW);
     return {
       status: "success",
       data: {

@@ -1,4 +1,5 @@
 import { mockFriendRequests } from "@/features/notifications/data/mockFriendRequests";
+import { mockRequest, MOCK_CONFIG } from "@/shared/utils/mock.utils";
 
 /**
  * @service NotificationService
@@ -11,7 +12,7 @@ export const NotificationService = {
    * @returns {Promise<Object>} Lista de solicitudes y metadatos.
    */
   async getFriendRequests(pageParam = null) {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await mockRequest(MOCK_CONFIG.DELAYS.SLOW);
 
     let pivotIndex = mockFriendRequests.length;
     if (pageParam) {
@@ -39,7 +40,7 @@ export const NotificationService = {
    * @returns {Promise<Object>} Resultado de la acción.
    */
   async respondToFriendRequest(request_uuid, action) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return { status: "success", data: { request_uuid, action } };
   },
 };

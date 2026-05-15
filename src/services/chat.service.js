@@ -1,6 +1,7 @@
 import { getMessagesByChannel } from "@/features/chat/data/chat_messages";
 import { getMessagesByDM as getDirectMessages, getDMConversationsPaginated, MOCK_DM_CONVERSATIONS } from "@/features/chat/data/direct_messages";
 import { MASTER_USER } from "@/features/users/data/users_table";
+import { mockRequest, MOCK_CONFIG } from "@/shared/utils/mock.utils";
 
 /**
  * @service ChatService
@@ -14,7 +15,7 @@ export const ChatService = {
    * @returns {Promise<Object>} Lista de mensajes y metadatos de paginación.
    */
   async getMessages(channel_uuid, pageParam = null) {
-    await new Promise((resolve) => setTimeout(resolve, pageParam ? 1200 : 1500));
+    await mockRequest(pageParam ? MOCK_CONFIG.DELAYS.SLOW : MOCK_CONFIG.DELAYS.MEDIUM);
     const allMessages = channel_uuid ? getMessagesByChannel(channel_uuid) : [];
 
     let pivotIndex = allMessages.length;
@@ -42,11 +43,7 @@ export const ChatService = {
    * @returns {Promise<Object>} El mensaje creado.
    */
   async sendMessage(channel_uuid, { content, client_uuid, parent_message_uuid }) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (process.env.NODE_ENV === "development" && Math.random() < 0.05) {
-      throw new Error("No se pudo conectar con el servidor (Simulación de Error)");
-    }
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM, true);
 
     return {
       status: "success",
@@ -75,7 +72,7 @@ export const ChatService = {
    * @returns {Promise<Object>} Lista de mensajes y metadatos de paginación.
    */
   async getDMMessages(dm_conversation_uuid, pageParam = null) {
-    await new Promise((resolve) => setTimeout(resolve, pageParam ? 1200 : 1500));
+    await mockRequest(pageParam ? MOCK_CONFIG.DELAYS.SLOW : MOCK_CONFIG.DELAYS.MEDIUM);
     const allMessages = dm_conversation_uuid ? getDirectMessages(dm_conversation_uuid) : [];
 
     let pivotIndex = allMessages.length;
@@ -103,11 +100,7 @@ export const ChatService = {
    * @returns {Promise<Object>} El mensaje creado.
    */
   async sendDMMessage(dm_conversation_uuid, { content, client_uuid, parent_message_uuid }) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (process.env.NODE_ENV === "development" && Math.random() < 0.05) {
-      throw new Error("No se pudo conectar con el servidor (Simulación de Error)");
-    }
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM, true);
 
     return {
       status: "success",
@@ -135,7 +128,7 @@ export const ChatService = {
    * @returns {Promise<Object>} Detalles de la conversación.
    */
   async getDMConversation(chatUuid) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await mockRequest(MOCK_CONFIG.DELAYS.FAST);
     const conversation = MOCK_DM_CONVERSATIONS.find((c) => c.uuid === chatUuid) || null;
     return { status: "success", data: conversation };
   },
@@ -147,8 +140,9 @@ export const ChatService = {
    * @returns {Promise<Object>} Lista de conversaciones.
    */
   async getDMConversationsList(searchQuery, pageParam) {
-    await new Promise((resolve) => setTimeout(resolve, pageParam ? 800 : 1200));
+    await mockRequest(pageParam ? MOCK_CONFIG.DELAYS.MEDIUM : MOCK_CONFIG.DELAYS.SLOW);
     const { conversations, nextCursor } = getDMConversationsPaginated(pageParam, 10, searchQuery);
     return { status: "success", data: conversations, meta: { next_cursor: nextCursor } };
   },
 };
+

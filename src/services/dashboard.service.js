@@ -1,6 +1,7 @@
 import { ClubsTable, FEATURED_CLUBS } from "@/features/clubs/data/clubs_table";
 import { USERS_TABLE } from "@/features/users/data/users_table";
 import { CLUB_SECTION_TITLE } from "@/features/clubs/data/club_section_title";
+import { mockRequest, MOCK_CONFIG } from "@/shared/utils/mock.utils";
 
 /**
  * @service DashboardService
@@ -12,7 +13,7 @@ export const DashboardService = {
    * @returns {Promise<Object>} Clubes destacados y categorías de secciones.
    */
   async getExploreData() {
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await mockRequest(MOCK_CONFIG.DELAYS.MEDIUM);
     return {
       status: "success",
       data: {
@@ -30,7 +31,7 @@ export const DashboardService = {
    * @returns {Promise<Object>} Resultados combinados y metadatos.
    */
   async globalSearch(searchTerm, filterType = "all", pageParam = null) {
-    await new Promise((resolve) => setTimeout(resolve, pageParam ? 400 : 600));
+    await mockRequest(pageParam ? MOCK_CONFIG.DELAYS.MEDIUM : MOCK_CONFIG.DELAYS.MEDIUM);
 
     if (!searchTerm) return { status: "success", data: [], meta: { next_cursor: null } };
 
