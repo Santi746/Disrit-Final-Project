@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useMutateCreateClub.js
@@ -23,38 +24,11 @@ export function useMutateCreateClub() {
 
   return useMutation({
     /**
-     * mutationFn: Envía la petición de creación al servidor.
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID generado en el Frontend (Regla #2).
-     * @param {string} params.name - Nombre del club.
-     * @param {string} params.description - Descripción del club.
-     * @param {string} params.category_tag - Tag de categoría (ej. "Videojuegos" o "f/Naruto").
-     * @param {string} params.logo_url - URL del logo (base64 o URL del File API).
-     * @param {string} params.banner_url - URL del banner.
-     * @param {string} params.owner_uuid - UUID del usuario creador.
+     * mutationFn: Delegado a la Capa de Servicios.
      */
-    mutationFn: async ({ client_uuid, name, description, category_tag, logo_url, banner_url, owner_uuid }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Borrar simulación de latencia
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // ✅ [Vyne-Replacement]: Aquí irá el POST real a Laravel
-      // const response = await axios.post('/api/clubs', { client_uuid, name, description, category_tag, logo_url, banner_url });
-      // return response.data;
-
-      return {
-        uuid: client_uuid,
-        name,
-        description,
-        category_tag,
-        logo_url,
-        banner_url,
-        owner_uuid,
-        members_count: 1,
-        online_count: 1,
-        created_at: new Date().getFullYear().toString(),
-        is_verified: false,
-        categories: [],
-      };
+    mutationFn: async (params) => {
+      const response = await ClubService.createClub(params);
+      return response;
     },
 
     /**
@@ -64,13 +38,13 @@ export function useMutateCreateClub() {
       const { client_uuid, name, description, category_tag, logo_url, banner_url, owner_uuid } = variables;
 
       // 1. Obtener los IDs actuales del usuario para encontrar la QueryKey exacta
-      const currentUser = queryClient.getQueryData(["current_user"]);
-      const clubIds = currentUser?.club_ids || [];
-      const userClubsKey = ["user_clubs", clubIds];
+      const currentUser = queryClient.getQueryData(["current_user_v2"]);
+      const clubUuids = currentUser?.club_uuids || [];
+      const userClubsKey = ["user_clubs"];
 
       // 2. Cancelar refetches en curso
       await queryClient.cancelQueries({ queryKey: userClubsKey });
-      await queryClient.cancelQueries({ queryKey: ["current_user"] });
+      await queryClient.cancelQueries({ queryKey: ["current_user_v2"] });
 
       // 3. Backup del estado anterior
       const previousUserClubs = queryClient.getQueryData(userClubsKey);
@@ -87,7 +61,7 @@ export function useMutateCreateClub() {
         owner_uuid,
         members_count: 1,
         online_count: 1,
-        created_at: new Date().getFullYear().toString(),
+        created_at: new Date().toISOString(),
         is_verified: false,
         categories: [],
         status: "creating",
@@ -100,11 +74,11 @@ export function useMutateCreateClub() {
       queryClient.setQueryData(["club", client_uuid], optimisticClub);
 
       // Opcional: Actualizar el current_user para que tenga el nuevo ID 
-      queryClient.setQueryData(["current_user"], (old) => {
+      queryClient.setQueryData(["current_user_v2"], (old) => {
         if (!old) return old;
         return {
           ...old,
-          club_ids: [...(old.club_ids || []), client_uuid]
+          club_uuids: [...(old.club_uuids || []), client_uuid]
         };
       });
 
@@ -124,7 +98,7 @@ export function useMutateCreateClub() {
       }
       
       if (context?.previousCurrentUser) {
-        queryClient.setQueryData(["current_user"], context.previousCurrentUser);
+        queryClient.setQueryData(["current_user_v2"], context.previousCurrentUser);
       }
 
       // Limpiar el club optimista de la caché individual
@@ -136,14 +110,14 @@ export function useMutateCreateClub() {
      */
     onSettled: (data, error, variables, context) => {
       queryClient.invalidateQueries({ queryKey: context?.userClubsKey });
-      queryClient.invalidateQueries({ queryKey: ["current_user"] });
+      queryClient.invalidateQueries({ queryKey: ["current_user_v2"] });
     },
 
     /**
      * onSuccess: Notificación de éxito al usuario.
      */
-    onSuccess: (data) => {
-      toast.success(`Club "${data.name}" creado exitosamente`);
+    onSuccess: (response) => {
+      toast.success(`Club "${response.data.name}" creado exitosamente`);
     },
   });
 }

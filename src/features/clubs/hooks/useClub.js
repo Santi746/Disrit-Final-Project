@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import * as Data from "@/features/clubs/data/clubs_dashboard";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useClub.js
@@ -9,12 +9,10 @@ export function useClub(club_uuid) {
   return useQuery({
     queryKey: ['club', club_uuid],
     queryFn: async () => {
-      // Simulación de latencia
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const allClubs = Object.values(Data).flat();
-      return allClubs.find((c) => c.uuid === club_uuid) || null;
+      const response = await ClubService.getClubByUuid(club_uuid);
+      return response.data;
     },
     enabled: !!club_uuid,
   });
 }
+

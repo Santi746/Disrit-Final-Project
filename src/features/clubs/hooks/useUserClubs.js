@@ -1,25 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { getClubsByIdUser } from "@/features/clubs/data/clubs_table";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useUserClubs.js
  * @description Hook profesional para obtener la lista de clubes de un usuario usando React Query.
  *
- * @param {Array} club_ids - Array de IDs de clubes en donde esta el usuario
+ * @param {string} user_uuid - UUID del usuario al que pertenecen los clubes.
+ * @param {Array} club_uuids - Array de IDs de clubes en donde esta el usuario
  * @returns {Object} Objeto de React Query con los datos de los clubes
  */
-export function useUserClubs(club_ids) {
+export function useUserClubs(user_uuid, club_uuids) {
   return useQuery({
-    queryKey: ['user_clubs', club_ids],
+    queryKey: ['user_clubs', user_uuid, club_uuids],
     queryFn: async () => {
-      // Simulación de latencia de red
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      
-      return (club_ids && club_ids.length > 0) 
-        ? getClubsByIdUser(club_ids) 
-        : [];
+      const response = await ClubService.getUserClubs(club_uuids);
+      return response.data;
     },
-    enabled: !!(club_ids && club_ids.length > 0),
+    enabled: !!user_uuid && !!club_uuids,
     staleTime: 1000 * 60 * 5, // 5 minutos de caché fresca
   });
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useMutateCreateCategory.js
@@ -16,58 +17,39 @@ import { toast } from "sonner";
  *
  * @param {string} clubUuid - UUID del club donde se crea la categoría.
  */
-export function useMutateCreateCategory(clubUuid) {
+export function useMutateCreateCategory(club_uuid) {
   const queryClient = useQueryClient();
 
   return useMutation({
     /**
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID generado en Frontend (Regla #2).
-     * @param {string} params.name - Nombre de la categoría.
-     * @param {boolean} params.is_private - Si la categoría es privada.
+     * mutationFn — Delegado a la Capa de Servicios
      */
-    mutationFn: async ({ client_uuid, name, is_private }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Simulación de latencia
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // ✅ [Vyne-Replacement]:
-      // const response = await axios.post(`/api/clubs/${clubUuid}/categories`, { client_uuid, name, is_private });
-      // return response.data;
-
-      return {
-        uuid: client_uuid,
-        name,
-        is_private,
-        channels: [],
-        order: Date.now(), // El backend asignará el order real
-      };
+    mutationFn: async (params) => {
+      const response = await ClubService.createCategory(club_uuid, params);
+      return response.data;
     },
 
     onMutate: async (variables) => {
       const { client_uuid, name, is_private } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["club", clubUuid] });
+      await queryClient.cancelQueries({ queryKey: ["club_categories", club_uuid] });
 
-      const previousClub = queryClient.getQueryData(["club", clubUuid]);
+      const previousCategories = queryClient.getQueryData(["club_categories", club_uuid]);
 
       const optimisticCategory = {
         uuid: client_uuid,
         name,
         is_private,
         channels: [],
-        order: (previousClub?.categories?.length || 0) + 1,
+        order: (previousCategories?.length || 0) + 1,
         status: "creating",
       };
 
-      queryClient.setQueryData(["club", clubUuid], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          categories: [...(old.categories || []), optimisticCategory],
-        };
+      queryClient.setQueryData(["club_categories", club_uuid], (old) => {
+        return [...(old || []), optimisticCategory];
       });
 
-      return { previousClub };
+      return { previousCategories };
     },
 
     onError: (err, variables, context) => {
@@ -75,13 +57,13 @@ export function useMutateCreateCategory(clubUuid) {
         description: err.message || "Inténtalo de nuevo más tarde.",
       });
 
-      if (context?.previousClub) {
-        queryClient.setQueryData(["club", clubUuid], context.previousClub);
+      if (context?.previousCategories) {
+        queryClient.setQueryData(["club_categories", club_uuid], context.previousCategories);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["club", clubUuid] });
+      queryClient.invalidateQueries({ queryKey: ["club_categories", club_uuid] });
     },
 
     onSuccess: (data) => {

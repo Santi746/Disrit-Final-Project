@@ -16,7 +16,7 @@ import UserSettingsTemplate from "@/features/users/components/templates/UserSett
  * Plantilla maestra que integra tanto el Sidebar de iconos como el Sidebar de Clubes.
  * Gestiona el layout global y el desplazamiento del contenido principal cuando se expanden/contraen los paneles.
  * Detecta la ruta actual para renderizar el sidebar apropiado:
- * - `/channels/@me/*`: No renderiza SidebarClub (el DMTemplate maneja su propio sidebar).
+ * - `/me/*`: No renderiza SidebarClub (el DMTemplate maneja su propio sidebar).
  * - Otras rutas: Comportamiento original con SidebarClub.
  *
  * @component SidebarTemplate
@@ -30,11 +30,13 @@ export default function SidebarTemplate({ children }) {
   const router = useRouter();
   const { createQueryString } = useQueryString();
   const pathname = usePathname();
+  const { clubSidebarLayout } = useSettingsStore();
+  
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
   // ── Detección de ruta de Mensajes Directos ──
-  const isDMRoute = pathname.startsWith("/channels/@me") || pathname.startsWith("/channels/%40me");
-  const isInDMChat = isDMRoute && pathname.split("/").filter(Boolean).length > 2; // e.g. ['channels', '%40me', '1234']
+  const isDMRoute = pathname.startsWith("/me");
+  const isInDMChat = isDMRoute && pathname.split("/").filter(Boolean).length > 1; // e.g. ['me', '1234']
   
   const isNotificationsOpen = searchParams.get("notifications") === "true";
 
@@ -56,7 +58,6 @@ export default function SidebarTemplate({ children }) {
   // En móvil, si el club está abierto, necesitamos más padding inferior para no tapar el contenido
   // pb-24 = 96px base. SidebarClub mide 70px. Total = 166px.
   // [NOTA DE ARQUITECTURA]: Esto podría cambiar si el usuario elige layout vertical en móviles.
-  const { clubSidebarLayout } = useSettingsStore();
   const isVerticalMobile = isMobile && clubSidebarLayout === "vertical";
 
   // Si estamos en un chat de DM en móvil, ocultamos el padding inferior por completo
@@ -92,7 +93,7 @@ export default function SidebarTemplate({ children }) {
         - 'style' sobreescribe o añade el padding dinámico.
       */}
       <main
-        className="bg-forest-card ease-out-expo h-dvh flex flex-col overflow-hidden transition-all duration-400 md:pb-0 md:pl-20"
+        className="bg-forest-card ease-out-expo h-dvh flex flex-col overflow-y-auto overflow-x-hidden transition-all duration-400 md:pb-0 md:pl-20"
         style={{
           paddingLeft: !isMobile ? desktopPaddingLeft : mobilePaddingLeft,
           paddingBottom: isMobile ? mobilePaddingBottom : "0px",

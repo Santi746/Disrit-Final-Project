@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useClub } from "./useClub";
+import { useClubCategories } from "./useClubCategories";
 
 /**
  * @hook useActiveChannel
@@ -11,19 +12,22 @@ import { useClub } from "./useClub";
  * @returns {Object} { channel, club, isLoading, isError }
  */
 export function useActiveChannel(club_uuid, channel_uuid) {
-  const { data: club, isLoading, isError } = useClub(club_uuid);
+  const { data: club, isLoading: isLoadingClub, isError } = useClub(club_uuid);
+  const { data: categories, isLoading: isLoadingCats } = useClubCategories(club_uuid);
+
+  const isLoading = isLoadingClub || isLoadingCats;
 
   const activeChannel = useMemo(() => {
     if (!club) return null;
 
-    // Aplanamos todas las categorías para buscar el canal (Regla #4: Minimalismo en payload)
-    const allChannels = club.categories?.flatMap((cat) => cat.channels) || [];
+    // 🛠️ [Vyne-Mode-Easy]: Buscamos en el hook de categorías desacoplado
+    const allChannels = categories?.flatMap((cat) => cat.channels) || [];
     
     // Si no hay channel_uuid, devolvemos el primero por defecto (Discord Style)
     if (!channel_uuid) return allChannels[0];
 
     return allChannels.find((ch) => ch.uuid === channel_uuid) || allChannels[0];
-  }, [club, channel_uuid]);
+  }, [club, channel_uuid, categories]);
 
   return {
     channel: activeChannel,

@@ -19,16 +19,17 @@ export const useGetBansUsers = (club_uuid) => {
           await new Promise((resolve) => setTimeout(resolve, 500));
 
           const bans = pageParam ? BANNED_USERS_TABLE.slice(6) : BANNED_USERS_TABLE.slice(0, 6);
-          const lastPage = {
-            bans,
-            nextCursor: pageParam ? null : bans[bans.length - 1]?.ban_uuid
+          
+          return {
+            data: bans,
+            meta: {
+              next_cursor: pageParam ? null : bans[bans.length - 1]?.ban_uuid
+            }
           };
-
-          return lastPage;
         },
 
         initialPageParam: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        getNextPageParam: (lastPage) => lastPage.meta?.next_cursor,
         enabled: !!club_uuid,
     })
 };

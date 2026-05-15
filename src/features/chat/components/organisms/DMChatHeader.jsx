@@ -21,7 +21,7 @@ export default function DMChatHeader({ participant }) {
   const isMobile = useMobileDetector();
 
   const handleBack = () => {
-    router.push("/channels/@me");
+    router.push("/me");
   };
 
   return (

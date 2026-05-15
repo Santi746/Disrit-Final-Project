@@ -4,6 +4,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "@/features/settings/stores/useSettingsStore";
+import { useRealTimeSocket } from "@/shared/hooks/useRealTimeSocket";
+// Componente interno para asegurar que useRealTimeSocket esté bajo el contexto de React Query
+function SocketInitializer() {
+  useRealTimeSocket();
+  return null;
+}
+
 /**
  * @component Providers
  * @description Contenedor global de proveedores para la aplicación.
@@ -30,6 +37,7 @@ export default function Providers({ children }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SocketInitializer />
       {children}
       {/* Devtools solo visibles en desarrollo para auditar la caché de Vyne */}
       <ReactQueryDevtools initialIsOpen={false} />

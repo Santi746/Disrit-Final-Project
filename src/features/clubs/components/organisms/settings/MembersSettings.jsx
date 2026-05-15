@@ -52,7 +52,7 @@ export default function MembersSettings({ club_uuid }) {
   const isError = isUsersError || isRolesError;
 
   // Aplanador: Convierte las páginas (ej: [[user1..50], [user51..100]]) en un array continuo.
-  const allMembers = users?.pages.flatMap((page) => page.members) ?? [];
+  const allMembers = users?.pages.flatMap((page) => page.data) ?? [];
 
   // Filtramos sobre la lista completa aplanada según el buscador.
   const filteredMembers = allMembers.filter((u) =>

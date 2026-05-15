@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
 import { Check, X, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
@@ -20,16 +20,10 @@ import { motion } from "framer-motion";
  * @param {Function} props.onAction - Función callback disparada después de que se realiza una acción (aceptar/rechazar). Recibe (uuid, action).
  * @returns {JSX.Element}
  */
-export default function FriendRequestCard({ request, onAction }) {
+export default function FriendRequestCard({ request, onAction, isPending }) {
 
 
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleAction = async (action) => {
-    setIsProcessing(true);
-    // Simular retraso de API
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsProcessing(false);
+  const handleAction = (action) => {
     if (onAction) {
       onAction(request.uuid, action);
     }
@@ -72,14 +66,14 @@ export default function FriendRequestCard({ request, onAction }) {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => handleAction("accept")}
-            disabled={isProcessing}
+            disabled={isPending}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-forest-accent text-forest-dark font-bold text-xs hover:bg-forest-light transition-colors disabled:opacity-50"
           >
-            {isProcessing ? "..." : "Aceptar"}
+            {isPending ? "..." : "Aceptar"}
           </button>
           <button
             onClick={() => handleAction("decline")}
-            disabled={isProcessing}
+            disabled={isPending}
             className="flex-1 sm:flex-none flex items-center justify-center p-2 rounded-lg bg-forest-stat text-forest-muted hover:bg-forest-danger hover:text-white transition-colors disabled:opacity-50"
             title="Rechazar"
           >

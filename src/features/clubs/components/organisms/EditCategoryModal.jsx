@@ -7,6 +7,7 @@ import ModalOverlay from "@/shared/components/ui/atoms/ModalOverlay";
 import ModalShell from "@/shared/components/ui/atoms/ModalShell";
 import { useMutateEditCategory } from "@/features/clubs/hooks/useMutateEditCategory";
 import { useClub } from "@/features/clubs/hooks/useClub";
+import { useClubCategories } from "@/features/clubs/hooks/useClubCategories";
 import { generateClientUUID } from "@/shared/utils/uuid";
 import { useQueryString } from "@/shared/hooks/useQueryString";
 
@@ -28,16 +29,16 @@ export default function EditCategoryModal() {
 
   const clubUuid = params.uuid;
   const { data: club } = useClub(clubUuid);
+  const { data: categories } = useClubCategories(clubUuid);
   const editCategoryMutation = useMutateEditCategory(clubUuid);
 
   // ── Estado local de formulario ──
   const [name, setName] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
-  /** Precarga valores de la categoría desde la caché del club */
   useEffect(() => {
-    if (isOpen && club) {
-      const category = club.categories?.find((c) => c.uuid === categoryUuid);
+    if (isOpen && club && categories) {
+      const category = categories?.find((c) => c.uuid === categoryUuid);
       if (category) {
         setName(category.name || "");
         setIsPrivate(!!category.is_private);

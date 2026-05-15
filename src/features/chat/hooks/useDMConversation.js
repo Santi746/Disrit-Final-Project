@@ -1,4 +1,5 @@
-import { MOCK_DM_CONVERSATIONS } from "@/features/chat/data/direct_messages";
+import { useQuery } from "@tanstack/react-query";
+import { ChatService } from "@/services/chat.service";
 
 /**
  * @hook useDMConversation
@@ -7,6 +8,12 @@ import { MOCK_DM_CONVERSATIONS } from "@/features/chat/data/direct_messages";
  * @returns {Object|null} La conversación o null si no existe.
  */
 export function useDMConversation(chatUuid) {
-  // En una API real, esto sería una query de React Query
-  return MOCK_DM_CONVERSATIONS.find((c) => c.uuid === chatUuid) || null;
+  return useQuery({
+    queryKey: ["dm_conversation", chatUuid],
+    queryFn: async () => {
+      const response = await ChatService.getDMConversation(chatUuid);
+      return response.data;
+    },
+    enabled: !!chatUuid,
+  });
 }

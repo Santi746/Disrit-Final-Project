@@ -31,7 +31,7 @@ export default function SearchingResults({ searchTerm = "" }) {
   } = useSearchClubs(searchTerm, activeFilter);
 
   // Aplanamos las páginas para obtener una lista única
-  const results = resultsData?.pages.flatMap(page => page.results) || [];
+  const results = resultsData?.pages.flatMap(page => page.data) || [];
   // Usamos el totalCount de la primera página para el contador
   const totalCount = resultsData?.pages[0]?.totalCount || 0;
 

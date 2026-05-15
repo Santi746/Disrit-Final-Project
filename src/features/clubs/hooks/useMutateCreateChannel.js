@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useMutateCreateChannel.js
@@ -15,44 +16,26 @@ import { toast } from "sonner";
  * - { client_uuid, name, type, is_private }
  * - Backend guarda con `client_uuid` UNIQUE y emite Broadcast.
  *
- * @param {string} clubUuid - UUID del club.
+ * @param {string} club_uuid - UUID del club.
  */
-export function useMutateCreateChannel(clubUuid) {
+export function useMutateCreateChannel(club_uuid) {
   const queryClient = useQueryClient();
 
   return useMutation({
     /**
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID generado en Frontend (Regla #2).
-     * @param {string} params.category_uuid - UUID de la categoría padre.
-     * @param {string} params.name - Nombre del canal.
-     * @param {string} params.type - Tipo de canal ("text" | "voice" | "announcement").
-     * @param {boolean} params.is_private - Si el canal es privado.
+     * mutationFn — Delegado a la Capa de Servicios
      */
     mutationFn: async ({ client_uuid, category_uuid, name, type, is_private }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Simulación de latencia
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // ✅ [Vyne-Replacement]:
-      // const response = await axios.post(`/api/clubs/${clubUuid}/categories/${category_uuid}/channels`, { client_uuid, name, type, is_private });
-      // return response.data;
-
-      return {
-        uuid: client_uuid,
-        name,
-        type,
-        is_private,
-        category_uuid,
-        order: Date.now(),
-      };
+      const response = await ClubService.createChannel(club_uuid, category_uuid, { client_uuid, name, type, is_private });
+      return response;
     },
 
     onMutate: async (variables) => {
       const { client_uuid, category_uuid, name, type, is_private } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["club", clubUuid] });
+      await queryClient.cancelQueries({ queryKey: ["club_categories", club_uuid] });
 
-      const previousClub = queryClient.getQueryData(["club", clubUuid]);
+      const previousCategories = queryClient.getQueryData(["club_categories", club_uuid]);
 
       const optimisticChannel = {
         uuid: client_uuid,
@@ -64,23 +47,20 @@ export function useMutateCreateChannel(clubUuid) {
         status: "creating",
       };
 
-      queryClient.setQueryData(["club", clubUuid], (old) => {
+      queryClient.setQueryData(["club_categories", club_uuid], (old) => {
         if (!old) return old;
-        return {
-          ...old,
-          categories: old.categories.map((cat) => {
-            if (cat.uuid === category_uuid) {
-              return {
-                ...cat,
-                channels: [...(cat.channels || []), optimisticChannel],
-              };
-            }
-            return cat;
-          }),
-        };
+        return old.map((cat) => {
+          if (cat.uuid === category_uuid) {
+            return {
+              ...cat,
+              channels: [...(cat.channels || []), optimisticChannel],
+            };
+          }
+          return cat;
+        });
       });
 
-      return { previousClub };
+      return { previousCategories };
     },
 
     onError: (err, variables, context) => {
@@ -88,17 +68,17 @@ export function useMutateCreateChannel(clubUuid) {
         description: err.message || "Inténtalo de nuevo más tarde.",
       });
 
-      if (context?.previousClub) {
-        queryClient.setQueryData(["club", clubUuid], context.previousClub);
+      if (context?.previousCategories) {
+        queryClient.setQueryData(["club_categories", club_uuid], context.previousCategories);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["club", clubUuid] });
+      queryClient.invalidateQueries({ queryKey: ["club_categories", club_uuid] });
     },
 
-    onSuccess: (data) => {
-      toast.success(`Canal "${data.name}" creado`);
+    onSuccess: (response) => {
+      toast.success(`Canal "${response.data.name}" creado`);
     },
   });
 }

@@ -3,22 +3,19 @@
 import ChatMessageList from "@/shared/components/ui/organisms/messaging/ChatMessageList";
 
 /**
- * @typedef {import("@/features/chat/data/chat_messages").ChatMessage} ChatMessage
- */
-
-/**
  * Organismo: Wrapper de clubs que delega al ChatMessageList reutilizable.
- * Mantiene la API existente para no romper el ClubChat existente.
+ * Mantiene la API existente e inyecta props al componente agnóstico.
  *
  * @component ChatInfo
  * @param {Object} props
- * @param {string} props.channelName - Nombre del canal.
- * @param {string} props.channelDescription - Descripción del canal.
- * @param {ChatMessage[]} props.messages - Colección de mensajes.
- * @param {boolean} props.isLoading - Estado de carga.
- * @param {Function} props.fetchNextPage - Función para cargar más mensajes.
- * @param {boolean} props.hasNextPage - Si hay más páginas.
- * @param {boolean} props.isFetchingNextPage - Si se está cargando la siguiente página.
+ * @param {string} props.channelName
+ * @param {string} props.channelDescription
+ * @param {Array} props.messages
+ * @param {boolean} props.isLoading
+ * @param {Function} props.fetchNextPage
+ * @param {boolean} props.hasNextPage
+ * @param {boolean} props.isFetchingNextPage
+ * @param {Function} props.onReply - Función para manejar respuestas.
  */
 export default function ChatInfo({
   channelName,
@@ -28,6 +25,7 @@ export default function ChatInfo({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  onReply,
 }) {
   return (
     <ChatMessageList
@@ -39,6 +37,7 @@ export default function ChatInfo({
       fetchNextPage={fetchNextPage}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
+      onReply={onReply}
     />
   );
 }

@@ -32,12 +32,12 @@ export default function UserMessage({
   i,
   isSameAuthor,
   status,
-  replyTo,
+  parent_message_uuid,
   onReply,
 }) {
   const formattedDate = formatMessageDate(created_at);
   const isSending = status === "sending";
-  const showHeader = !isSameAuthor || !!replyTo;
+  const showHeader = !isSameAuthor || !!parent_message_uuid;
 
   return (
     <motion.div
@@ -51,8 +51,8 @@ export default function UserMessage({
       <MessageActionsBar onReply={onReply} />
 
       {/* Referencia de Respuesta (si existe) */}
-      {replyTo && (
-        <ReplyReference username={replyTo.username} content={replyTo.content} />
+      {parent_message_uuid && (
+        <ReplyReference username={"Usuario"} content={"Mensaje original"} />
       )}
 
       {/* Contenedor principal del mensaje (Avatar + Contenido) */}

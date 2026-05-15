@@ -10,8 +10,8 @@ import { usePathname } from "next/navigation";
  * Orquesta el layout: SidebarMD (izquierda) + contenido (derecha).
  *
  * En móvil:
- * - Si estamos en `/channels/@me` (sin chat seleccionado): muestra SOLO el sidebar.
- * - Si estamos en `/channels/@me/[chat_uuid]`: muestra SOLO el chat (pantalla completa).
+ * - Si estamos en `/me` (sin chat seleccionado): muestra SOLO el sidebar.
+ * - Si estamos en `/me/[chat_uuid]`: muestra SOLO el chat (pantalla completa).
  *
  * En desktop: sidebar + contenido siempre visibles lado a lado.
  *
@@ -23,7 +23,7 @@ export default function DMTemplate({ children }) {
   const pathname = usePathname();
 
   // En móvil, determinar si estamos viendo un chat específico
-  const isInChat = pathname !== "/channels/@me";
+  const isInChat = pathname !== "/me";
 
   // En móvil: si estamos en un chat, solo mostramos el chat.
   // Si estamos en la raíz (@me), solo mostramos el sidebar.

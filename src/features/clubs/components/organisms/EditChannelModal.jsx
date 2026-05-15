@@ -7,6 +7,7 @@ import ModalOverlay from "@/shared/components/ui/atoms/ModalOverlay";
 import ModalShell from "@/shared/components/ui/atoms/ModalShell";
 import { useMutateEditChannel } from "@/features/clubs/hooks/useMutateEditChannel";
 import { useClub } from "@/features/clubs/hooks/useClub";
+import { useClubCategories } from "@/features/clubs/hooks/useClubCategories";
 import { generateClientUUID } from "@/shared/utils/uuid";
 import { useQueryString } from "@/shared/hooks/useQueryString";
 
@@ -43,6 +44,7 @@ export default function EditChannelModal() {
 
   const clubUuid = params.uuid;
   const { data: club } = useClub(clubUuid);
+  const { data: categories } = useClubCategories(clubUuid);
   const editChannelMutation = useMutateEditChannel(clubUuid);
 
   // ── Estado local de formulario ──
@@ -51,10 +53,9 @@ export default function EditChannelModal() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  /** Precarga valores del canal desde la caché del club */
   useEffect(() => {
-    if (isOpen && club) {
-      const category = club.categories?.find((c) => c.uuid === categoryUuid);
+    if (isOpen && club && categories) {
+      const category = categories?.find((c) => c.uuid === categoryUuid);
       const channel = category?.channels?.find((ch) => ch.uuid === channelUuid);
       if (channel) {
         setName(channel.name || "");

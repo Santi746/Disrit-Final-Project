@@ -19,7 +19,7 @@ export default function FriendRequestsList() {
     isFetchingNextPage,
   } = useMockFriendRequests();
   
-  const { mutate: respondRequest } = useMutateFriendRequests();
+  const { mutate: respondRequest, isPending: isMutationPending } = useMutateFriendRequests();
   const observerRef = useRef(null);
 
   useEffect(() => {
@@ -46,8 +46,8 @@ export default function FriendRequestsList() {
   /**
    * Maneja las acciones de aceptar/rechazar delegando al hook de mutación (Protocolo Vyne).
    */
-  const handleAction = (requestUuid, action) => {
-    respondRequest({ requestUuid, action });
+  const handleAction = (request_uuid, action) => {
+    respondRequest({ request_uuid, action });
   };
 
   if (isLoading) {
@@ -66,7 +66,7 @@ export default function FriendRequestsList() {
     );
   }
 
-  const requests = data?.pages.flatMap((page) => page.requests) || [];
+  const requests = data?.pages.flatMap((page) => page.data) || [];
 
   if (requests.length === 0) {
     return (
@@ -86,6 +86,7 @@ export default function FriendRequestsList() {
           key={request.uuid} 
           request={request} 
           onAction={handleAction} 
+          isPending={isMutationPending}
         />
       ))}
       

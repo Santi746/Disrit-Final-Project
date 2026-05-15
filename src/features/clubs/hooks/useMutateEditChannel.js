@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useMutateEditChannel.js
@@ -17,72 +18,56 @@ import { toast } from "sonner";
  *
  * @param {string} clubUuid - UUID del club que contiene el canal.
  */
-export function useMutateEditChannel(clubUuid) {
+export function useMutateEditChannel(club_uuid) {
   const queryClient = useQueryClient();
 
   return useMutation({
     /**
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID de la mutación (Regla #2).
-     * @param {string} params.channel_uuid - UUID del canal a editar/eliminar.
-     * @param {string} params.category_uuid - UUID de la categoría padre.
-     * @param {string} [params.action="update"] - Acción: "update" | "delete".
-     * @param {string} [params.name] - Nuevo nombre (solo para update).
-     * @param {string} [params.type] - Nuevo tipo (solo para update).
-     * @param {boolean} [params.is_private] - Nueva privacidad (solo para update).
+     * mutationFn — Delegado a la Capa de Servicios
      */
     mutationFn: async ({ client_uuid, channel_uuid, category_uuid, action = "update", name, type, is_private }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Simulación
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
       if (action === "delete") {
-        // ✅ [Vyne-Replacement]:
-        // await axios.delete(`/api/clubs/${clubUuid}/channels/${channel_uuid}`);
-        return { uuid: channel_uuid, action: "delete" };
+        const response = await ClubService.deleteChannel(club_uuid, channel_uuid);
+        return response.data;
       }
 
-      // ✅ [Vyne-Replacement]:
-      // const response = await axios.patch(`/api/clubs/${clubUuid}/channels/${channel_uuid}`, { name, type, is_private });
-      // return response.data;
-      return { uuid: channel_uuid, name, type, is_private, action: "update" };
+      const response = await ClubService.editChannel(club_uuid, { channel_uuid, name, type, is_private });
+      return { ...response.data, action: "update" };
     },
 
     onMutate: async (variables) => {
       const { channel_uuid, category_uuid, action, name, type, is_private } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["club", clubUuid] });
+      await queryClient.cancelQueries({ queryKey: ["club_categories", club_uuid] });
 
-      const previousClub = queryClient.getQueryData(["club", clubUuid]);
+      const previousCategories = queryClient.getQueryData(["club_categories", club_uuid]);
 
-      queryClient.setQueryData(["club", clubUuid], (old) => {
+      queryClient.setQueryData(["club_categories", club_uuid], (old) => {
         if (!old) return old;
 
-        return {
-          ...old,
-          categories: old.categories.map((cat) => {
-            // Solo modificamos la categoría que contiene el canal
-            if (cat.uuid !== category_uuid) return cat;
+        return old.map((cat) => {
+          // Solo modificamos la categoría que contiene el canal
+          if (cat.uuid !== category_uuid) return cat;
 
-            if (action === "delete") {
-              return {
-                ...cat,
-                channels: cat.channels.filter((ch) => ch.uuid !== channel_uuid),
-              };
-            }
-
-            // action === "update"
+          if (action === "delete") {
             return {
               ...cat,
-              channels: cat.channels.map((ch) => {
-                if (ch.uuid !== channel_uuid) return ch;
-                return { ...ch, name, type, is_private, status: "saving" };
-              }),
+              channels: cat.channels.filter((ch) => ch.uuid !== channel_uuid),
             };
-          }),
-        };
+          }
+
+          // action === "update"
+          return {
+            ...cat,
+            channels: cat.channels.map((ch) => {
+              if (ch.uuid !== channel_uuid) return ch;
+              return { ...ch, name, type, is_private, status: "saving" };
+            }),
+          };
+        });
       });
 
-      return { previousClub };
+      return { previousCategories };
     },
 
     onError: (err, variables, context) => {
@@ -91,13 +76,13 @@ export function useMutateEditChannel(clubUuid) {
         description: err.message || "Inténtalo de nuevo más tarde.",
       });
 
-      if (context?.previousClub) {
-        queryClient.setQueryData(["club", clubUuid], context.previousClub);
+      if (context?.previousCategories) {
+        queryClient.setQueryData(["club_categories", club_uuid], context.previousCategories);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["club", clubUuid] });
+      queryClient.invalidateQueries({ queryKey: ["club_categories", club_uuid] });
     },
 
     onSuccess: (data) => {

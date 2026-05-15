@@ -40,7 +40,7 @@ export default function BansSettings({ club_uuid }) {
   } = useGetBansUsers(club_uuid);
 
   // Aplanador: convierte las páginas en un array continuo
-  const allBans = bansData?.pages?.flatMap((p) => p.bans) ?? [];
+  const allBans = bansData?.pages?.flatMap((p) => p.data) ?? [];
 
   // Filtro de búsqueda sobre la lista aplanada
   const filteredBans = allBans.filter(

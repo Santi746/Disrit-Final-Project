@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { ClubService } from "@/services/club.service";
 
 /**
  * @hook useMutateClubRoles
@@ -14,9 +14,8 @@ export function useMutateClubRoles(club_uuid) {
   // MUTACIÓN: Crear Rol
   const createMutation = useMutation({
     mutationFn: async ({ client_uuid, ...newRoleData }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Borrar simulación
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      return { uuid: client_uuid, ...newRoleData, is_fixed: false };
+      const response = await ClubService.createRole(club_uuid, { client_uuid, ...newRoleData });
+      return response.data;
     },
     onMutate: async ({ client_uuid, ...newRoleData }) => {
       await queryClient.cancelQueries({ queryKey: ['club_roles', club_uuid] });
@@ -43,12 +42,8 @@ export function useMutateClubRoles(club_uuid) {
   // MUTACIÓN: Actualizar Rol
   const updateMutation = useMutation({
     mutationFn: async ({ client_uuid, ...updatedRole }) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      // Convertimos permisos a string para evitar problemas de serialización JSON en el futuro
-      if (updatedRole.permissions !== undefined) {
-        updatedRole.permissions = updatedRole.permissions.toString();
-      }
-      return { ...updatedRole, client_uuid };
+      const response = await ClubService.updateRole(club_uuid, updatedRole);
+      return { ...response.data, client_uuid };
     },
     onMutate: async ({ client_uuid, ...updatedRole }) => {
       await queryClient.cancelQueries({ queryKey: ['club_roles', club_uuid] });
@@ -73,8 +68,8 @@ export function useMutateClubRoles(club_uuid) {
   // MUTACIÓN: Asignar Rol a Miembro
   const assignMutation = useMutation({
     mutationFn: async ({ client_uuid, userUuid, roleUuid }) => {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      return { userUuid, roleUuid, client_uuid };
+      const response = await ClubService.assignRole(club_uuid, userUuid, roleUuid);
+      return { ...response.data, client_uuid };
     },
     onMutate: async ({ userUuid, roleUuid }) => {
       // 1. Cancelamos queries para evitar sobrescrituras
@@ -91,27 +86,13 @@ export function useMutateClubRoles(club_uuid) {
           ...old,
           pages: old.pages.map(page => ({
             ...page,
-            members: page.members.map(user => {
+            data: page.data.map(user => {
               if (user.uuid !== userUuid) return user;
               const currentRoles = user.roles_ids || [];
               if (currentRoles.includes(roleUuid)) return user;
               return { ...user, roles_ids: [...currentRoles, roleUuid] };
             })
           }))
-        };
-      });
-
-      // 3. Actualizamos el objeto club principal (Fuente para useCheckPermission)
-      queryClient.setQueryData(['club', club_uuid], (old) => {
-        if (!old || !old.members) return old;
-        return {
-          ...old,
-          members: old.members.map(member => {
-            if (member.user_uuid !== userUuid) return member;
-            const currentRoles = member.roles_ids || [];
-            if (currentRoles.includes(roleUuid)) return member;
-            return { ...member, roles_ids: [...currentRoles, roleUuid] };
-          })
         };
       });
 

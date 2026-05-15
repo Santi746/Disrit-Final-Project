@@ -14,10 +14,10 @@ import { useRouter, usePathname } from "next/navigation";
 export default function FriendsNavItem({ pendingCount = 0 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isActive = pathname === "/channels/@me";
+  const isActive = pathname === "/me";
 
   const handleClick = () => {
-    router.push("/channels/@me");
+    router.push("/me");
   };
 
   return (

@@ -6,16 +6,15 @@
  * 
  * Este archivo agrupa estáticamente la data de clubes con la lógica de UI de su categoría.
  */
-import {
-    VIDEOJUEGOS_CLUBS,
-    TECNOLOGIA_CLUBS,
-    ARTE_CLUBS,
-    MUSICA_CLUBS,
-    CIENCIA_CLUBS,
-    ENTRETENIMIENTO_CLUBS,
-    NEGOCIOS_CLUBS,
-    IDIOMAS_CLUBS
-} from "./clubs_dashboard";
+import { VIDEOJUEGOS_CLUBS } from "./clubs_dashboard/videojuegos";
+import { TECNOLOGIA_CLUBS } from "./clubs_dashboard/tecnologia";
+import { ARTE_CLUBS } from "./clubs_dashboard/arte";
+import { MUSICA_CLUBS } from "./clubs_dashboard/musica";
+import { CIENCIA_CLUBS } from "./clubs_dashboard/ciencia";
+import { ENTRETENIMIENTO_CLUBS } from "./clubs_dashboard/entretenimiento";
+import { NEGOCIOS_CLUBS } from "./clubs_dashboard/negocios";
+import { IDIOMAS_CLUBS } from "./clubs_dashboard/idiomas";
+
 
 export const CLUB_SECTION_TITLE = [
     {

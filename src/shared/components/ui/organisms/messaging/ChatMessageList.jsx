@@ -1,31 +1,25 @@
 "use client";
 
+import { Virtuoso } from "react-virtuoso";
 import WelcomeMessage from "@/shared/components/ui/molecules/messaging/WelcomeMessage";
 import UserMessage from "@/shared/components/ui/molecules/messaging/UserMessage";
-import InfiniteScrollTrigger from "@/shared/components/ui/atoms/InfiniteScrollTrigger";
 import ChatLoadingSkeleton from "@/shared/components/ui/atoms/messaging/ChatLoadingSkeleton";
-import { useReplyStore } from "@/features/chat/stores/useReplyStore";
-
-/**
- * @typedef {import("@/features/chat/data/chat_messages").ChatMessage} ChatMessage
- */
 
 /**
  * @organism ChatMessageList
- * @description Organismo REUTILIZABLE para el área de contenido de mensajes de chat.
- * Usado tanto en clubs como en mensajes directos (MD).
- * Renderiza el mensaje de bienvenida al inicio seguido de la lista de mensajes con .map().
+ * @description Organismo AGNOSTICO para el área de contenido de mensajes.
+ * Utiliza react-virtuoso para virtualización de alto rendimiento (Regla Vyne).
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.welcomeTitle - Título para el mensaje de bienvenida.
- * @param {string} props.welcomeDescription - Descripción para el mensaje de bienvenida.
- * @param {string} [props.welcomeIcon] - Tipo de ícono: "hash" (clubs) o "dm" (mensajes directos).
- * @param {ChatMessage[]} props.messages - Colección de mensajes a renderizar.
- * @param {boolean} props.isLoading - Indica si se están cargando los mensajes iniciales.
- * @param {Function} props.fetchNextPage - Función para cargar más mensajes (scroll infinito).
- * @param {boolean} props.hasNextPage - Indica si hay más páginas disponibles.
- * @param {boolean} props.isFetchingNextPage - Indica si se está cargando la siguiente página.
- * @returns {JSX.Element}
+ * @param {Object} props
+ * @param {string} props.welcomeTitle
+ * @param {string} props.welcomeDescription
+ * @param {string} [props.welcomeIcon]
+ * @param {Array} props.messages
+ * @param {boolean} props.isLoading
+ * @param {Function} props.fetchNextPage
+ * @param {boolean} props.hasNextPage
+ * @param {boolean} props.isFetchingNextPage
+ * @param {Function} props.onReply
  */
 export default function ChatMessageList({
   welcomeTitle,
@@ -36,63 +30,76 @@ export default function ChatMessageList({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  onReply = () => {},
 }) {
-  const setReplyingTo = useReplyStore((state) => state.setReplyingTo);
+  // Virtuoso renderiza mejor cronológicamente. Revertimos el array para que el más viejo sea el índice 0.
+  const reversedMessages = [...messages].reverse();
 
   return (
-    // flex-col-reverse para que el scroll empiece desde abajo (los más nuevos)
-    <div className="no-scrollbar flex flex-1 flex-col-reverse overflow-y-auto">
-      {/* Cargando inicial: Skeletons estilo Discord */}
+    <div className="flex flex-1 flex-col overflow-hidden">
       {isLoading ? (
         <ChatLoadingSkeleton />
       ) : (
-        <div className="flex flex-col-reverse gap-1 pb-2">
-          {messages.map((msg, i) => {
-            const isSameAuthor =
-              messages[i + 1]?.sender_uuid === messages[i]?.sender_uuid;
+        <Virtuoso
+          className="no-scrollbar h-full w-full"
+          data={reversedMessages}
+          initialTopMostItemIndex={reversedMessages.length - 1}
+          alignToBottom={true}
+          followOutput="auto"
+          startReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          itemContent={(i, msg) => {
+            // Compara con el mensaje anterior (más viejo) para ocultar avatar si es el mismo autor
+            const isSameAuthor = i > 0 && reversedMessages[i - 1]?.sender_uuid === msg.sender_uuid;
+            
             return (
-              <UserMessage
-                key={msg.uuid}
-                sender_uuid={msg.sender_uuid}
-                avatar_url={msg.avatar_url}
-                username={msg.username}
-                created_at={msg.created_at}
-                content={msg.content}
-                isSameAuthor={isSameAuthor}
-                status={msg.status}
-                replyTo={msg.replyTo}
-                onReply={() =>
-                  setReplyingTo({
-                    uuid: msg.uuid,
-                    username: msg.username,
-                    content: msg.content,
-                  })
-                }
-                i={i}
-              />
+              <div className="py-0.5 px-4">
+                <UserMessage
+                  sender_uuid={msg.sender_uuid}
+                  avatar_url={msg.user?.avatar_url}
+                  username={msg.user?.username}
+                  created_at={msg.created_at}
+                  content={msg.content}
+                  isSameAuthor={isSameAuthor}
+                  status={msg.status}
+                  parent_message_uuid={msg.parent_message_uuid}
+                  onReply={() =>
+                    onReply({
+                      uuid: msg.uuid,
+                      username: msg.user?.username,
+                      content: msg.content,
+                    })
+                  }
+                  i={i}
+                />
+              </div>
             );
-          })}
-        </div>
-      )}
-
-      {/* Sensor de Scroll Infinito (entre los mensajes y la bienvenida) */}
-      {hasNextPage && !isLoading && (
-        <InfiniteScrollTrigger
-          onTrigger={fetchNextPage}
-          hasMore={hasNextPage}
-          isLoading={isFetchingNextPage}
+          }}
+          components={{
+            Header: () => (
+              <>
+                {isFetchingNextPage && (
+                  <div className="py-4 text-center text-sm text-gray-400">
+                    Cargando historial...
+                  </div>
+                )}
+                {!hasNextPage && (
+                  <div className="pt-10 pb-5">
+                    <WelcomeMessage
+                      channelName={welcomeTitle}
+                      channelDescription={welcomeDescription}
+                      iconType={welcomeIcon}
+                    />
+                  </div>
+                )}
+              </>
+            ),
+          }}
         />
       )}
-
-      {/* Mensaje de bienvenida: SIEMPRE visible en el techo del chat. */}
-      <div className="pt-10 pb-5">
-        <WelcomeMessage
-          channelName={welcomeTitle}
-          channelDescription={welcomeDescription}
-          iconType={welcomeIcon}
-        />
-      </div>
     </div>
   );
 }
-

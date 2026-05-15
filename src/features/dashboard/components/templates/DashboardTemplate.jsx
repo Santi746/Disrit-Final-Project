@@ -120,7 +120,7 @@ export default function DashboardTemplate({ className = "" }) {
           ) : (
             <motion.div
               key="featured"
-              className="sticky top-0 z-40 -mx-2 px-2 pt-5 pb-4 backdrop-blur-md"
+              className="-mx-2 px-2 pt-5 pb-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}

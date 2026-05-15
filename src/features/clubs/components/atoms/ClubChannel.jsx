@@ -28,7 +28,7 @@ export default function ClubChannel({ name, i, uuid, category_uuid, active, club
   });
 
   const handleNavigation = () => {
-    router.push(`/ClubPage/${params.uuid || club_uuid}/${uuid}`);
+    router.push(`/clubs/${params.uuid || club_uuid}/${uuid}`);
   };
 
   return (

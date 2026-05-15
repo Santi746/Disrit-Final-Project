@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
 import { useRouter } from "next/navigation";
+import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
+import { getUserDisplayName } from "@/features/users/utils/user_helpers";
 import { MOCK_DM_CONVERSATIONS } from "@/features/chat/data/direct_messages";
 
 /**
@@ -18,6 +19,7 @@ export default function FriendCard({ friend }) {
   const router = useRouter();
 
   const statusText = friend.is_online ? "En línea" : "Desconectado";
+  const displayName = getUserDisplayName(friend);
 
   /**
    * Navegar al chat directo con este amigo.
@@ -28,7 +30,7 @@ export default function FriendCard({ friend }) {
       (c) => c.participant?.uuid === friend.uuid
     );
     if (existingConv) {
-      router.push(`/channels/@me/${existingConv.uuid}`);
+      router.push(`/me/${existingConv.uuid}`);
     }
   };
 
@@ -43,7 +45,7 @@ export default function FriendCard({ friend }) {
         <UserAvatar
           uuid={friend.uuid}
           avatar_url={friend.avatar_url}
-          display_name={friend.display_name}
+          display_name={displayName}
           is_online={friend.is_online}
           size="md"
         />
@@ -52,7 +54,7 @@ export default function FriendCard({ friend }) {
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-sm font-semibold text-forest-light">
-          {friend.display_name || friend.username}
+          {displayName}
         </span>
         <span className="text-xs text-forest-muted">{statusText}</span>
       </div>
@@ -63,7 +65,7 @@ export default function FriendCard({ friend }) {
         <button
           onClick={handleStartChat}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-forest-deep text-forest-muted hover:text-forest-light transition-colors cursor-pointer"
-          title={`Enviar mensaje a ${friend.display_name}`}
+          title={`Enviar mensaje a ${displayName}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />

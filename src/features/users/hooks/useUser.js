@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { USERS_TABLE } from "@/features/users/data/users_table";
+import { UserService } from "@/services/user.service";
 
 /**
  * @file useUser.js
@@ -7,14 +7,10 @@ import { USERS_TABLE } from "@/features/users/data/users_table";
  */
 export function useUser(user_uuid) {
   return useQuery({
-    queryKey: ['user', user_uuid],
+    queryKey: ['user_v2', user_uuid],
     queryFn: async () => {
-      // Simulación de latencia de red
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      
-      const user = USERS_TABLE.find((u) => u.uuid === user_uuid);
-      if (!user) throw new Error("Usuario no encontrado");
-      return user;
+      const response = await UserService.getUser(user_uuid);
+      return response.data;
     },
     enabled: !!user_uuid,
     staleTime: 1000 * 60 * 10, // 10 minutos de caché

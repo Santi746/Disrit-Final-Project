@@ -68,7 +68,7 @@ export default function SidebarMembers({ clubUuid }) {
     return "Member";
   };
 
-  const members = data?.pages.flatMap((page) => page.members) || [];
+  const members = data?.pages.flatMap((page) => page.data) || [];
 
   // Agrupar y ordenar por jerarquía de rol
   const { groupedMembers, sortedRoles } = useMemo(() => {

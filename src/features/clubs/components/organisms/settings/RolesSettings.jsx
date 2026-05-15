@@ -14,6 +14,7 @@ import { useMutateClubRoles } from "@/features/clubs/hooks/useMutateClubRoles";
 import { useClubMembers } from "@/features/clubs/hooks/useClubMembers";
 import RolePermissionsModal from "./RolePermissionsModal";
 import { generateClientUUID } from "@/shared/utils/uuid";
+import { PERMISSIONS } from "@/shared/constants/permissions";
 import SettingsHeader from "@/shared/components/ui/molecules/SettingsHeader";
 
 import RoleListSidebar from "../../molecules/settings/RoleListSidebar";
@@ -34,7 +35,7 @@ export default function RolesSettings({ club_uuid }) {
     isError: isUsersError 
   } = useClubMembers(club_uuid);
 
-  const users = usersData?.pages.flatMap((page) => page.members) ?? [];
+  const users = usersData?.pages.flatMap((page) => page.data) ?? [];
   const isPending = isRolesPending || isUsersPending;
   const isError = isRolesError || isUsersError;
 
@@ -82,9 +83,9 @@ export default function RolesSettings({ club_uuid }) {
   }
 
   const filteredUsers = users.filter(u => {
-    const nameToSearch = u.display_name || (u.first_name ? `${u.first_name} ${u.last_name}` : u.username) || "";
+    const nameToSearch = u.display_name || u.username || "";
     return nameToSearch.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !(u.roles || []).includes(selectedRole?.uuid);
+      !(u.roles_ids || []).includes(selectedRole?.uuid);
   });
 
   const handleCreateRole = async () => {

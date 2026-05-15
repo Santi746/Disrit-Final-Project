@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UserService } from "@/services/user.service";
 
 /**
  * @file useMutateUser.js
@@ -9,34 +10,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
  * Actualmente simula la latencia de red y devuelve los datos enviados.
  *
  * @returns {import("@tanstack/react-query").UseMutationResult}
- *
- * @example
- * const { mutate } = useMutateUser();
- * mutate({
- *   client_uuid: crypto.randomUUID(),
- *   first_name: "Nuevo Nombre",
- * });
  */
 export function useMutateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
     /**
-     * mutationFn — Simulación de PATCH /api/user
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID generado en el cliente (Regla Vyne).
-     * @param {Object} params.updateData  - Campos a actualizar (first_name, username, etc.).
+     * mutationFn — Delegado a la Capa de Servicios
      */
     mutationFn: async ({ client_uuid, ...updateData }) => {
-      // Simulación de latencia de red real
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Simulación de validación de servidor
-      if (updateData.new_password && updateData.new_password.length < 8) {
-        throw new Error("La contraseña debe tener al menos 8 caracteres");
-      }
-
-      return { ...updateData, success: true };
+      const response = await UserService.updateUser(updateData);
+      return response.data;
     },
 
     /**
@@ -45,11 +29,11 @@ export function useMutateUser() {
     onMutate: async (variables) => {
       const { client_uuid, ...updateData } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["current_user"] });
+      await queryClient.cancelQueries({ queryKey: ["current_user_v2"] });
 
-      const previousUser = queryClient.getQueryData(["current_user"]);
+      const previousUser = queryClient.getQueryData(["current_user_v2"]);
 
-      queryClient.setQueryData(["current_user"], (old) => {
+      queryClient.setQueryData(["current_user_v2"], (old) => {
         if (!old) return old;
         return { ...old, ...updateData };
       });
@@ -62,7 +46,7 @@ export function useMutateUser() {
      */
     onError: (_err, _variables, context) => {
       if (context?.previousUser) {
-        queryClient.setQueryData(["current_user"], context.previousUser);
+        queryClient.setQueryData(["current_user_v2"], context.previousUser);
       }
     },
 
@@ -70,7 +54,7 @@ export function useMutateUser() {
      * onSettled — Refetch silencioso para sincronizar con el servidor.
      */
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["current_user"] });
+      queryClient.invalidateQueries({ queryKey: ["current_user_v2"] });
     },
   });
 }

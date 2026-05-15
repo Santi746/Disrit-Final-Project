@@ -3,16 +3,17 @@
  * @description Provides a centralized table of all registered clubs and utility functions to filter them.
  */
 
-import { VIDEOJUEGOS_CLUBS } from "./clubs_dashboard";
-import { ARTE_CLUBS } from "./clubs_dashboard";
-import { CIENCIA_CLUBS } from "./clubs_dashboard";
-import { MUSICA_CLUBS } from "./clubs_dashboard";
-import { TECNOLOGIA_CLUBS } from "./clubs_dashboard";
-import { ENTRETENIMIENTO_CLUBS  } from "./clubs_dashboard";
-import { IDIOMAS_CLUBS } from "./clubs_dashboard";
-import { NEGOCIOS_CLUBS } from "./clubs_dashboard";
+import { VIDEOJUEGOS_CLUBS } from "./clubs_dashboard/videojuegos";
+import { ARTE_CLUBS } from "./clubs_dashboard/arte";
+import { CIENCIA_CLUBS } from "./clubs_dashboard/ciencia";
+import { MUSICA_CLUBS } from "./clubs_dashboard/musica";
+import { TECNOLOGIA_CLUBS } from "./clubs_dashboard/tecnologia";
+import { ENTRETENIMIENTO_CLUBS  } from "./clubs_dashboard/entretenimiento";
+import { IDIOMAS_CLUBS } from "./clubs_dashboard/idiomas";
+import { NEGOCIOS_CLUBS } from "./clubs_dashboard/negocios";
+import { FEATURED_CLUBS } from "./clubs_dashboard/featured";
+export { FEATURED_CLUBS };
 
-import { FEATURED_CLUBS } from "./clubs_dashboard";
 
 /**
  * A combined array containing all clubs from various categories.
@@ -31,12 +32,12 @@ export const ClubsTable = [
 ];
 
 /**
- * Función para obtener los clubes a los que pertenece un usuario. (club_ids)
- * @param {Array<string|number>} club_ids - Esto es el uuid de los clubes a los que pertenece el usuario. 
+ * Función para obtener los clubes a los que pertenece un usuario. (club_uuids)
+ * @param {Array<string|number>} club_uuids - Esto es el uuid de los clubes a los que pertenece el usuario. 
  * @returns {Array<Object>} Un array con los clubes a los que pertenece el usuario. (Objetos)
  */
-export const getClubsByIdUser = (club_ids) => {
+export const getClubsByIdUser = (club_uuids) => {
     return ClubsTable.filter((tempClub) => {
-        return club_ids.includes(tempClub.uuid);
+        return club_uuids.includes(tempClub.uuid);
     });
 };

@@ -7,6 +7,7 @@ import {
   FiMessageSquare,
   FiUserPlus,
   FiX,
+  FiSettings,
 } from "react-icons/fi";
 
 import useBreakpointValue from "@/shared/hooks/useBreakpointValue";
@@ -18,6 +19,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/features/users/hooks/useUser";
 import { useUserClubs } from "@/features/clubs/hooks/useUserClubs";
+import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
+import { useFriends } from "@/features/chat/hooks/useFriends";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 
@@ -58,7 +61,14 @@ export default function UserModal() {
 
   const maxClubsVisible = useBreakpointValue([{ maxWidth: 375, value: 2 }], 3);
   const { data: user, isLoading: isUserLoading } = useUser(userId);
-  const { data: userClubs } = useUserClubs(user?.club_ids);
+  const { data: currentUser } = useCurrentUser();
+  
+  const isCurrentUser = user?.uuid === currentUser?.uuid;
+
+  const { data: userClubs } = useUserClubs(isCurrentUser ? null : user?.uuid, isCurrentUser ? null : user?.club_uuids);
+  const { data: friendsData } = useFriends();
+  
+  const friends = friendsData?.pages?.[0]?.data || [];
 
   useEffect(() => {
     if (userId) {
@@ -165,22 +175,47 @@ export default function UserModal() {
 
                   <div className="bg-forest-border/40 h-px w-full my-1" />
 
-                  {/* Clubes Compartidos */}
-                  <div className="flex flex-col gap-3">
-                    <h3 className="text-forest-muted text-[11px] font-bold tracking-widest uppercase">Clubes en común</h3>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {resolvedClubs.slice(0, 4).map((club) => (
-                        <Link key={club.uuid} href={buildPreviewHref(club.uuid)} scroll={false} className="bg-forest-stat/40 border border-forest-border/40 hover:border-forest-accent/40 flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all">
-                          <img src={club.logo} className="h-5 w-5 rounded-full object-cover" alt="" />
-                          <span className="text-forest-light text-xs font-semibold">{club.name}</span>
-                        </Link>
-                      ))}
+                  {/* Condicional: Amigos (Self) o Clubes Compartidos (Others) */}
+                  {isCurrentUser ? (
+                    <div className="flex flex-col gap-3">
+                      <h3 className="text-forest-muted text-[11px] font-bold tracking-widest uppercase">Tus Amigos ({friends.length})</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {friends.slice(0, 6).map((friend) => (
+                          <Link key={friend.uuid} href={`?user=${friend.uuid}`} scroll={false} className="relative group">
+                            <img src={friend.avatar_url} className="h-8 w-8 rounded-full border-2 border-forest-dark object-cover group-hover:border-forest-accent transition-all" alt={friend.display_name} title={friend.display_name} />
+                            {friend.is_online && <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-forest-accent rounded-full border-2 border-forest-dark" />}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <h3 className="text-forest-muted text-[11px] font-bold tracking-widest uppercase">Clubes en común</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {resolvedClubs.slice(0, 4).map((club) => (
+                          <Link key={club.uuid} href={buildPreviewHref(club.uuid)} scroll={false} className="bg-forest-stat/40 border border-forest-border/40 hover:border-forest-accent/40 flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all">
+                            <img src={club.logo} className="h-5 w-5 rounded-full object-cover" alt="" />
+                            <span className="text-forest-light text-xs font-semibold">{club.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-3 mt-4">
-                    <Button variant="custom" className="bg-forest-accent hover:bg-forest-accent-mid flex-1 py-3 rounded-xl text-black font-bold text-sm shadow-lg shadow-forest-accent/10">Enviar mensaje</Button>
-                    <Button variant="custom" className="bg-forest-stat border border-forest-border hover:border-forest-accent/50 text-forest-light flex-1 py-3 rounded-xl font-bold text-sm transition-all">Añadir amigo</Button>
+                    {isCurrentUser ? (
+                      <Link href="?settings=user" scroll={false} className="w-full">
+                        <Button variant="custom" className="bg-forest-stat border border-forest-border hover:border-forest-accent/50 hover:text-forest-accent text-forest-light w-full py-3 rounded-xl font-bold text-sm transition-all flex justify-center items-center gap-2">
+                          <FiSettings size={18} />
+                          Configuración
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Button variant="custom" className="bg-forest-accent hover:bg-forest-accent-mid flex-1 py-3 rounded-xl text-black font-bold text-sm shadow-lg shadow-forest-accent/10">Enviar mensaje</Button>
+                        <Button variant="custom" className="bg-forest-stat border border-forest-border hover:border-forest-accent/50 text-forest-light flex-1 py-3 rounded-xl font-bold text-sm transition-all">Añadir amigo</Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </>

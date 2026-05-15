@@ -1,6 +1,7 @@
 "use client";
 
 import ClubCard from "@/features/clubs/components/molecules/ClubCard";
+import { motion } from "framer-motion";
 
 /**
  * Renderiza la sección principal de Descubrimiento de la aplicación.
@@ -35,13 +36,14 @@ export default function ClubsFeatured({ featuredClubs = [], categories = [] }) {
 
       {/* SECCIÓN 2: Clubes organizados por Categoría (Videojuegos, Tecnología, etc) */}
       {categories.map((category) => (
-        <section
+        <motion.section
           key={category.uuid}
           id={`category-${category.uuid}`}
           className="flex scroll-mt-45 flex-col gap-4"
-          data-aos="fade-up"
-          data-aos-delay="100"
-          data-aos-duration="1000"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         >
           {/* Encabezado de la categoría con su ícono y título */}
           <div className="text-forest-light flex items-center gap-2">
@@ -57,7 +59,7 @@ export default function ClubsFeatured({ featuredClubs = [], categories = [] }) {
               <ClubCard key={`cat-${category.uuid}-club-${i}`} club={club} />
             ))}
           </div>
-        </section>
+        </motion.section>
       ))}
     </div>
   );

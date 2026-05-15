@@ -72,7 +72,7 @@ export default function SidebarClub({ isClubOpen, isMobile, clubSidebarLayout })
   // [MIGRATION-MARK: REACT-QUERY] Hook a migrar
   const { data: currentUser } = useCurrentUser();
   // [MIGRATION-MARK: REACT-QUERY] Hook a migrar
-  const { data: userClubs } = useUserClubs(currentUser?.club_ids);
+  const { data: userClubs } = useUserClubs(currentUser?.uuid, currentUser?.club_uuids);
 
   return (
     <>
@@ -116,11 +116,12 @@ export default function SidebarClub({ isClubOpen, isMobile, clubSidebarLayout })
               className={`flex ${isMobile && !isVerticalMobile ? "no-scrollbar flex-row overflow-x-auto" : "flex-col"} gap-4`}
             >
               {userClubs?.map((tempClub, index) => {
-                // Código Defensivo: Si el club viene incompleto (sin categorías), no rompemos la app.
-                const firstChannelUuid = tempClub.categories?.[0]?.channels?.[0]?.uuid || "default";
+                // 🛠️ [Vyne-Mode-Easy]: Eliminada dependencia de categorías anidadas. 
+                // Usamos el campo plano del contrato.
+                const firstChannelUuid = tempClub.default_channel_uuid || "default";
 
                 return (
-                <Link key={tempClub.uuid} href={`/ClubPage/${tempClub.uuid}/${firstChannelUuid}`}>
+                <Link key={tempClub.uuid} href={`/clubs/${tempClub.uuid}/${firstChannelUuid}`}>
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}

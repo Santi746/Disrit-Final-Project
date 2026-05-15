@@ -3,7 +3,11 @@
 import ClubChatHeader from "@/features/clubs/components/organisms/ClubChatHeader";
 import ChatInfo from "@/features/clubs/components/organisms/ChatInfo";
 import ChatInput from "@/shared/components/ui/organisms/messaging/ChatInput";
-import { useReplyStore } from "@/features/chat/stores/useReplyStore";
+import { useReplyStore } from "@/shared/stores/useReplyStore";
+import { useMutateChatMessages } from "@/features/chat/hooks/useMutateChatMessages";
+import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
+import { PERMISSIONS } from "@/shared/constants/permissions";
+import { generateClientUUID } from "@/shared/utils/uuid";
 
 /**
  * @typedef {import("@/features/chat/data/chat_messages").ChatMessage} ChatMessage
@@ -12,14 +16,7 @@ import { useReplyStore } from "@/features/chat/stores/useReplyStore";
 /**
  * @component ClubChat
  * @description Organismo contenedor principal del chat del club.
- * Orquesta el encabezado (ClubChatHeader), el área de mensajes (ChatInfo) y el campo de entrada (ChatInput)
- * en un diseño vertical de pantalla completa.
- *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.channelName - Nombre del canal que se está visualizando.
- * @param {string} props.channelDescription - Descripción del propósito del canal actual.
- * @param {ChatMessage[]} props.messages - Colección de objetos de mensajes a renderizar en el historial.
- * @returns {JSX.Element} Un contenedor de sección flex-col optimizado para visualización de chat.
+ * Orquesta la lógica específica del club e inyecta las mutaciones en el ChatInput agnóstico.
  */
 export default function ClubChat({
   clubUuid,
@@ -33,17 +30,30 @@ export default function ClubChat({
   channelUuid,
 }) {
 
-  const { replyingTo, clearReply } = useReplyStore();
+  const { replyingTo, clearReply, setReplyingTo } = useReplyStore();
   
+  // ── LÓGICA DE MUTACIÓN ──
+  const { mutate: sendMessage } = useMutateChatMessages(channelUuid);
+
+  // ── PROTECCIÓN DE PERMISOS (BITWISE) ──
+  const canSendMessages = useCheckPermission(clubUuid, PERMISSIONS.SEND_MESSAGES);
+
+  const handleSendMessage = ({ content }) => {
+    sendMessage({
+      content,
+      client_uuid: generateClientUUID(),
+      parent_message_uuid: replyingTo?.uuid || null,
+    });
+    clearReply();
+  };
+
   return (
     <section className="bg-forest-deep flex h-screen flex-1 min-w-0 flex-col">
-      {/* Header: título del canal + acciones */}
       <ClubChatHeader
         channelName={channelName}
         channelDescription={channelDescription}
       />
 
-      {/* Área de mensajes scrolleable */}
       <ChatInfo
         channelName={channelName}
         channelDescription={channelDescription}
@@ -52,15 +62,16 @@ export default function ClubChat({
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
+        onReply={setReplyingTo}
       />
 
-      {/* Input de chat pegado al fondo */}
       <ChatInput 
-        clubUuid={clubUuid}
-        channelName={channelName} 
-        channelUuid={channelUuid} 
-        replyingTo={replyingTo} 
-        onCloseReply={clearReply} 
+        placeholder={`Enviar mensaje en #${channelName}...`}
+        onSendMessage={handleSendMessage}
+        replyingTo={replyingTo}
+        onCloseReply={clearReply}
+        disabled={!canSendMessages}
+        disabledMessage="No tienes permiso para enviar mensajes en este canal"
       />
     </section>
   );

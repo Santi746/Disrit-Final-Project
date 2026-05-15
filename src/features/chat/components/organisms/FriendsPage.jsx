@@ -7,7 +7,7 @@ import FriendCard from "@/features/chat/components/molecules/FriendCard";
 import AddFriendForm from "@/features/chat/components/molecules/AddFriendForm";
 import InfiniteScrollTrigger from "@/shared/components/ui/atoms/InfiniteScrollTrigger";
 import SkeletonPulse from "@/shared/components/ui/atoms/SkeletonPulse";
-import { useFriends } from "@/features/users/hooks/useFriends";
+import { useFriends } from "@/features/chat/hooks/useFriends";
 
 /**
  * @organism FriendsPage
@@ -25,19 +25,11 @@ export default function FriendsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFriends(activeTab);
+  } = useFriends(activeTab, searchTerm); // <- Delegamos la búsqueda al "servidor"
 
-  // Extraer todos los amigos de las páginas
-  const friends = friendsData?.pages.flatMap((page) => page.friends) || [];
-
-  // Filtro de búsqueda local (cliente)
-  const filteredFriends = searchTerm.trim()
-    ? friends.filter(
-        (f) =>
-          f.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          f.username?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : friends;
+  // Extraer todos los amigos de las páginas (ya vienen filtrados desde el server mock)
+  const friends = friendsData?.pages.flatMap((page) => page.data) || [];
+  const filteredFriends = friends; // Ya no filtramos en cliente
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);

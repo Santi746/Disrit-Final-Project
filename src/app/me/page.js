@@ -6,8 +6,7 @@ import FriendsPage from "@/features/chat/components/organisms/FriendsPage";
 /**
  * @page DirectMessagesHome
  * @description Punto de entrada para la sección de Mensajes Directos.
- * Renderiza la página de amigos como contenido principal por defecto
- * (idéntico al comportamiento de Discord al entrar en MD).
+ * Renderiza la página de amigos como contenido principal por defecto.
  */
 export default function DirectMessagesHome() {
   return (

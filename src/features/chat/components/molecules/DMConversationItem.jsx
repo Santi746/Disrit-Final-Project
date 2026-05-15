@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import UserAvatar from "@/shared/components/ui/atoms/UserAvatar";
+import { getUserDisplayName } from "@/features/users/utils/user_helpers";
 import { useRouter, useParams } from "next/navigation";
 
 /**
@@ -23,9 +24,10 @@ export default function DMConversationItem({ conversation }) {
   const params = useParams();
   const isActive = params?.chat_uuid === conversation.uuid;
   const participant = conversation.participant;
+  const displayName = getUserDisplayName(participant);
 
   const handleClick = () => {
-    router.push(`/channels/@me/${conversation.uuid}`);
+    router.push(`/me/${conversation.uuid}`);
   };
 
   return (
@@ -43,7 +45,7 @@ export default function DMConversationItem({ conversation }) {
         <UserAvatar
           uuid={participant?.uuid}
           avatar_url={participant?.avatar_url}
-          display_name={participant?.display_name}
+          display_name={displayName}
           is_online={participant?.is_online}
           size="sm"
         />
@@ -52,7 +54,7 @@ export default function DMConversationItem({ conversation }) {
       {/* Info del chat */}
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <span className="truncate text-sm font-semibold leading-tight">
-          {participant?.display_name || participant?.username}
+          {displayName}
         </span>
         <span className="truncate text-xs text-forest-muted leading-tight max-w-full">
           {conversation.last_message_content}

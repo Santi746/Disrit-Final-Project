@@ -8,6 +8,7 @@ import ClubDropdownMenu from "@/features/clubs/components/molecules/ClubDropdown
 import ClubIdentityHeader from "@/features/clubs/components/molecules/ClubIdentityHeader";
 import { useClub } from "@/features/clubs/hooks/useClub";
 import SidebarChannelsSkeleton from "@/features/clubs/components/atoms/SidebarChannelsSkeleton";
+import { useClubCategories } from "@/features/clubs/hooks/useClubCategories";
 
 /**
  * @component SidebarClubChannels (Organism)
@@ -18,15 +19,16 @@ export default function SidebarClubChannels() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const params = useParams();
 
-  // Hook Vyne-compliant (React Query)
-  const { data: club, isPending, isError } = useClub(params.uuid);
+  // Hooks Vyne-compliant (React Query) desacoplados
+  const { data: club, isPending: isPendingClub, isError: isErrorClub } = useClub(params.uuid);
+  const { data: categories, isPending: isPendingCats } = useClubCategories(params.uuid);
 
-  if (isPending) return <SidebarChannelsSkeleton />;
-  if (isError || !club) return null;
+  if (isPendingClub || isPendingCats) return <SidebarChannelsSkeleton />;
+  if (isErrorClub || !club) return null;
 
   return (
     <>
-      <section className="bg-forest-dark border-forest-border-faint h-sidebar-height flex w-76 flex-col border-r border-b md:h-screen">
+      <section className="relative bg-forest-dark border-forest-border-faint h-sidebar-height flex w-76 flex-col border-r border-b md:h-screen">
         
         {/* Identidad del Club (Molécula extraída) */}
         <ClubIdentityHeader 
@@ -44,7 +46,7 @@ export default function SidebarClubChannels() {
 
         {/* Lista de Canales por categorías */}
         <motion.div className="bg-forest-card border-forest-border-faint no-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t px-4 pt-5">
-          {club.categories.map((tempCategory, i) => (
+          {categories?.map((tempCategory, i) => (
             <ClubCategory
               key={tempCategory.uuid}
               uuid={tempCategory.uuid}

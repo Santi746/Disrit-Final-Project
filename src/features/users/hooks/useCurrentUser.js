@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { MASTER_USER } from "@/features/users/data/users_table";
+import { UserService } from "@/services/user.service";
 
 /**
  * @file useCurrentUser.js
@@ -10,11 +10,10 @@ import { MASTER_USER } from "@/features/users/data/users_table";
  */
 export function useCurrentUser() {
   return useQuery({
-    queryKey: ["current_user"],
+    queryKey: ["current_user_v2"],
     queryFn: async () => {
-      // Simulación de latencia de red
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return MASTER_USER;
+      const response = await UserService.getCurrentUser();
+      return response.data;
     },
     staleTime: Infinity, // El usuario actual no cambia a menos que haya una mutación
   });

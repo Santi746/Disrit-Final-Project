@@ -42,9 +42,7 @@ export class ClubData {
         logo_url,
         created_at,
         owner_uuid,
-        categories = [],
-        roles = [],
-        members = []
+        default_channel_uuid = "category-001-channel-001" // 🛠️ [Vyne-Mode-Easy]: Valor plano para navegación rápida
     } = {}) {
         this.uuid = uuid;
         this.name = name;
@@ -58,8 +56,6 @@ export class ClubData {
         this.logo_url = logo_url;
         this.created_at = created_at;
         this.owner_uuid = owner_uuid;
-        this.categories = categories;
-        this.roles = roles;
-        this.members = members;
+        this.default_channel_uuid = default_channel_uuid;
     }
 }

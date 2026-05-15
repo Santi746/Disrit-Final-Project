@@ -9,13 +9,13 @@ import ClubSettingsTemplate from "@/features/clubs/components/templates/ClubSett
 import ClubPageLoadingSkeleton from "@/features/clubs/components/atoms/ClubPageLoadingSkeleton";
 
 /**
- * @page ClubPage
- * @description Punto de entrada para la visualización de un club específico.
- * Actualmente gestiona la carga de datos mock de canales y mensajes basándose en el estado global simplificado.
+ * @page ClubChannelsPage
+ * @description Punto de entrada para la visualización de un canal específico dentro de un club.
+ * Orquesta la visualización del chat y los ajustes del club.
  *
  * @returns {JSX.Element} La estructura de la página que contiene el organismo ClubChat.
  */
-export default function ClubPage() {
+export default function ClubChannelsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -31,10 +31,7 @@ export default function ClubPage() {
   const { channel, club, isLoading, isError } = useActiveChannel(params.uuid, params.channel_uuid);
 
   /* Se busca los mensajes del canal por uuid */
-  const { data: messagesData, isLoading: isLoadingMessages, fetchNextPage, hasNextPage, isFetchingNextPage } = useChatMessages(channel?.uuid);
-  
-  /* Esto obtiene todos los mensaje que se trajo de la data*/
-  const messages = messagesData?.pages.flatMap(page => page.messages) || [];
+  const { messages, isLoading: isLoadingMessages, fetchNextPage, hasNextPage, isFetchingNextPage } = useChatMessages(channel?.uuid);
 
   /* Skeleton de carga mientras se resuelven los datos del canal/club */
   if (isLoading) {

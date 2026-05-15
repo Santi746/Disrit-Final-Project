@@ -28,25 +28,18 @@ export default function SidebarMD({ isMobile }) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useDirectMessagesList();
+  } = useDirectMessagesList(searchTerm); // <- Delegamos la búsqueda al "servidor"
 
-  // Extraer todas las conversaciones de las páginas
-  const conversations = dmData?.pages.flatMap((page) => page.conversations) || [];
-
-  // Filtrar por búsqueda local (cliente)
-  const filteredConversations = searchTerm.trim()
-    ? conversations.filter((c) =>
-        c.participant?.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.participant?.username?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : conversations;
+  // Extraer todas las conversaciones de las páginas (ya vienen filtradas del mock server)
+  const conversations = dmData?.pages.flatMap((page) => page.data) || [];
+  const filteredConversations = conversations; // Ya no filtramos en cliente
 
   return (
     <aside
       className={`bg-forest-dark-alt border-forest-border flex flex-col overflow-hidden ${
         isMobile
           ? "w-full h-full"
-          : "h-full w-60 shrink-0 border-r"
+          : "h-full w-80 shrink-0 border-r"
       }`}
     >
       {/* ── Barra de Búsqueda ─────────────────────────── */}

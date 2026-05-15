@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { NotificationService } from "@/services/notification.service";
 
 /**
  * @hook useMutateFriendRequests
@@ -13,48 +14,40 @@ export function useMutateFriendRequests() {
 
   const mutation = useMutation({
     /**
-     * mutationFn — Simulación de POST /api/friends/respond
-     * @param {Object} params
-     * @param {string} params.requestUuid - UUID de la solicitud.
-     * @param {'accept' | 'decline'} params.action - Acción a realizar.
+     * mutationFn — Delegado a la Capa de Servicios
      */
-    mutationFn: async ({ requestUuid, action }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Borrar simulación
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Simulación de error (opcional para pruebas)
-      // if (Math.random() < 0.1) throw new Error("Error de conexión");
-
-      return { requestUuid, action, success: true };
+    mutationFn: async ({ client_uuid, request_uuid, action }) => {
+      const response = await NotificationService.respondToFriendRequest(request_uuid, action);
+      return response.data;
     },
 
     /**
      * onMutate — Optimistic Update: Removemos o actualizamos la solicitud antes de la respuesta.
      */
-    onMutate: async ({ requestUuid, action }) => {
+    onMutate: async ({ request_uuid, action }) => {
       // Cancelar refetches salientes para evitar sobrescribir el estado optimista
-      await queryClient.cancelQueries({ queryKey: ["friend_requests", "mock"] });
+      await queryClient.cancelQueries({ queryKey: ["friend_requests"] });
 
       // Guardar backup del estado anterior
-      const previousData = queryClient.getQueryData(["friend_requests", "mock"]);
+      const previousData = queryClient.getQueryData(["friend_requests"]);
 
       // Actualizar la caché de forma optimista
-      queryClient.setQueryData(["friend_requests", "mock"], (oldData) => {
+      queryClient.setQueryData(["friend_requests"], (oldData) => {
         if (!oldData || !oldData.pages) return oldData;
 
         return {
           ...oldData,
           pages: oldData.pages.map((page) => ({
             ...page,
-            requests: page.requests.map((req) =>
-              req.uuid === requestUuid
+            data: page.data.map((req) =>
+              req.uuid === request_uuid
                 ? { ...req, status: action === "accept" ? "accepted" : "declined" }
                 : req
             ).filter((req) => {
               // Si declinamos, la borramos visualmente de inmediato
-              if (req.uuid === requestUuid && action === "decline") return false;
+              if (req.uuid === request_uuid && action === "decline") return false;
               // Si aceptamos, también la solemos borrar de la lista de "pendientes"
-              if (req.uuid === requestUuid && action === "accept") return false;
+              if (req.uuid === request_uuid && action === "accept") return false;
               return true;
             }),
           })),
@@ -73,15 +66,18 @@ export function useMutateFriendRequests() {
       });
       
       if (context?.previousData) {
-        queryClient.setQueryData(["friend_requests", "mock"], context.previousData);
+        queryClient.setQueryData(["friend_requests"], context.previousData);
       }
     },
 
     /**
      * onSettled — Sincronización final.
      */
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["friend_requests", "mock"] });
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["friend_requests"] });
+      if (variables.action === "accept") {
+        queryClient.invalidateQueries({ queryKey: ["friends"] });
+      }
     },
   });
 

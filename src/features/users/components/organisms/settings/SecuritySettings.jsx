@@ -164,7 +164,7 @@ export default function SecuritySettings() {
             <div className="animate-pulse h-20 bg-forest-card rounded-xl" />
           ) : (
             sessions?.map((session) => (
-              <SessionItem key={session.id} session={session} onTerminate={closeSession} />
+              <SessionItem key={session.uuid} session={session} onTerminate={closeSession} />
             ))
           )}
         </div>

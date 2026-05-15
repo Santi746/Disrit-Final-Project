@@ -86,8 +86,8 @@ export const MOCK_DM_MESSAGES = {
     const participant = USERS_TABLE.find(u => u.uuid === "usr_rel_4521");
     const isMaster = i % 2 === 0;
     const user = isMaster
-      ? { uuid: MASTER_USER.uuid, name: MASTER_USER.username, avatar: MASTER_USER.avatar_url }
-      : { uuid: participant.uuid, name: participant.username, avatar: participant.avatar_url };
+      ? { uuid: MASTER_USER.uuid, username: MASTER_USER.username, avatar_url: MASTER_USER.avatar_url }
+      : { uuid: participant.uuid, username: participant.username, avatar_url: participant.avatar_url };
 
     const contents = [
       "¡Hola! ¿Cómo va todo?",
@@ -104,12 +104,17 @@ export const MOCK_DM_MESSAGES = {
 
     return {
       uuid: `dm-msg-001-${String(i + 1).padStart(3, "0")}`,
+      client_uuid: `dm-client-001-${i}`,
       sender_uuid: user.uuid,
-      username: user.name,
-      avatar_url: user.avatar,
       content: contents[i % contents.length],
-      created_at: new Date(new Date("2026-05-09T10:00:00Z").getTime() + i * 120000).toISOString(),
       status: "sent",
+      parent_message_uuid: null,
+      created_at: new Date(new Date("2026-05-09T10:00:00Z").getTime() + i * 120000).toISOString(),
+      user: {
+        uuid: user.uuid,
+        username: user.username,
+        avatar_url: user.avatar_url,
+      },
     };
   }),
 
@@ -117,8 +122,8 @@ export const MOCK_DM_MESSAGES = {
     const participant = USERS_TABLE.find(u => u.uuid === "usr_rel_8834");
     const isMaster = i % 3 === 0;
     const user = isMaster
-      ? { uuid: MASTER_USER.uuid, name: MASTER_USER.username, avatar: MASTER_USER.avatar_url }
-      : { uuid: participant.uuid, name: participant.username, avatar: participant.avatar_url };
+      ? { uuid: MASTER_USER.uuid, username: MASTER_USER.username, avatar_url: MASTER_USER.avatar_url }
+      : { uuid: participant.uuid, username: participant.username, avatar_url: participant.avatar_url };
 
     const contents = [
       "¿Viste el último update del DLC?",
@@ -131,12 +136,17 @@ export const MOCK_DM_MESSAGES = {
 
     return {
       uuid: `dm-msg-002-${String(i + 1).padStart(3, "0")}`,
+      client_uuid: `dm-client-002-${i}`,
       sender_uuid: user.uuid,
-      username: user.name,
-      avatar_url: user.avatar,
       content: contents[i % contents.length],
-      created_at: new Date(new Date("2026-05-09T08:00:00Z").getTime() + i * 180000).toISOString(),
       status: "sent",
+      parent_message_uuid: null,
+      created_at: new Date(new Date("2026-05-09T08:00:00Z").getTime() + i * 180000).toISOString(),
+      user: {
+        uuid: user.uuid,
+        username: user.username,
+        avatar_url: user.avatar_url,
+      },
     };
   }),
 
@@ -144,17 +154,22 @@ export const MOCK_DM_MESSAGES = {
     const participant = USERS_TABLE.find(u => u.uuid === "usr_rel_1190");
     const isMaster = i % 2 !== 0;
     const user = isMaster
-      ? { uuid: MASTER_USER.uuid, name: MASTER_USER.username, avatar: MASTER_USER.avatar_url }
-      : { uuid: participant.uuid, name: participant.username, avatar: participant.avatar_url };
+      ? { uuid: MASTER_USER.uuid, username: MASTER_USER.username, avatar_url: MASTER_USER.avatar_url }
+      : { uuid: participant.uuid, username: participant.username, avatar_url: participant.avatar_url };
 
     return {
       uuid: `dm-msg-003-${String(i + 1).padStart(3, "0")}`,
+      client_uuid: `dm-client-003-${i}`,
       sender_uuid: user.uuid,
-      username: user.name,
-      avatar_url: user.avatar,
       content: `Mensaje de prueba #${i + 1} en conversación con Ana.`,
-      created_at: new Date(new Date("2026-05-09T06:00:00Z").getTime() + i * 240000).toISOString(),
       status: "sent",
+      parent_message_uuid: null,
+      created_at: new Date(new Date("2026-05-09T06:00:00Z").getTime() + i * 240000).toISOString(),
+      user: {
+        uuid: user.uuid,
+        username: user.username,
+        avatar_url: user.avatar_url,
+      },
     };
   }),
 };
@@ -174,17 +189,28 @@ export const getMessagesByDM = (dmUuid) => {
  * @function getDMConversationsPaginated
  * @param {string|null} cursor - El UUID de la última conversación cargada (cursor).
  * @param {number} limit - Cantidad de conversaciones por página.
+ * @param {string} searchQuery - Búsqueda opcional.
  * @returns {{ conversations: DMConversation[], nextCursor: string|null }}
  */
-export const getDMConversationsPaginated = (cursor, limit = 10) => {
+export const getDMConversationsPaginated = (cursor, limit = 10, searchQuery = "") => {
+  let filtered = MOCK_DM_CONVERSATIONS;
+
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(c => 
+      c.participant?.display_name?.toLowerCase().includes(query) ||
+      c.participant?.username?.toLowerCase().includes(query)
+    );
+  }
+
   let startIndex = 0;
 
   if (cursor) {
-    const cursorIndex = MOCK_DM_CONVERSATIONS.findIndex(c => c.uuid === cursor);
+    const cursorIndex = filtered.findIndex(c => c.uuid === cursor);
     startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
   }
 
-  const conversations = MOCK_DM_CONVERSATIONS.slice(startIndex, startIndex + limit);
+  const conversations = filtered.slice(startIndex, startIndex + limit);
   const nextCursor = conversations.length === limit
     ? conversations[conversations.length - 1].uuid
     : null;

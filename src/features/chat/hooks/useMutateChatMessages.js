@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { generateClientUUID } from "@/shared/utils/uuid";
-import { MASTER_USER } from "@/features/users/data/users_table";
 import { toast } from "sonner";
+import { ChatService } from "@/services/chat.service";
 
 /**
  * @file useMutateChatMessages.js
@@ -12,50 +11,46 @@ export function useMutateChatMessages(channel_uuid) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ content, client_uuid, reply_to_uuid }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Borrar simulación
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulación de error aleatorio (50% de probabilidad) para probar el rollback (borrar en integracion con back end)
-      if (Math.random() < 0.5) {
-        throw new Error("No se pudo conectar con el servidor");
-      }
-      
-      return {
-        uuid: client_uuid,
+    mutationFn: async ({ content, client_uuid, parent_message_uuid }) => {
+      const response = await ChatService.sendMessage(channel_uuid, {
         content,
-        sender_uuid: MASTER_USER.uuid,
-        username: MASTER_USER.username,
-        avatar_url: MASTER_USER.avatar_url,
-        created_at: new Date().toISOString(),
-        reply_to_uuid, // El backend guardará esto
-      };
+        client_uuid,
+        parent_message_uuid,
+      });
+      return response.data;
     },
 
     // ✅ [Vyne-Keep]: TODO LO DE ABAJO ES ARQUITECTURA.
-    onMutate: async ({ content, client_uuid, replyTo }) => {
+    onMutate: async ({ content, client_uuid, parent_message_uuid }) => {
       // 1. Cancelamos cualquier refetch saliente
       await queryClient.cancelQueries({ queryKey: ['messages', channel_uuid] });
 
       // 2. Guardamos un backup del estado anterior
       const previousMessages = queryClient.getQueryData(['messages', channel_uuid]);
+      
+      // Obtenemos el usuario actual de la caché para el mensaje optimista
+      const currentUser = queryClient.getQueryData(["current_user_v2"]);
 
-      // 3. Inyectamos el mensaje optimista en la caché
+      // 3. Inyectamos el dato optimista (lo que el usuario acaba de mandar)
       const optimisticMessage = {
-        uuid: client_uuid, // ✅ [Vyne-Rule-2]: Usamos el UUID inyectado
-        sender_uuid: MASTER_USER.uuid,
-        username: MASTER_USER.username,
-        avatar_url: MASTER_USER.avatar_url,
+        uuid: client_uuid,
+        client_uuid: client_uuid,
+        sender_uuid: currentUser?.uuid || "unknown",
         content,
         created_at: new Date().toISOString(),
         status: 'sending',
-        replyTo, // Inyectamos el objeto visual para que la UI lo pinte YA
+        parent_message_uuid,
+        user: {
+          uuid: currentUser?.uuid || "unknown",
+          username: currentUser?.username || "Guest",
+          avatar_url: currentUser?.avatar_url || "",
+        }
       };
 
     queryClient.setQueryData(['messages', channel_uuid], (oldData) => {
 
       if (!oldData ||  !oldData.pages) {
-        return { pages: [{ messages: [optimisticMessage], nextCursor : null }], pageParams: [undefined] };
+        return { pages: [{ data: [optimisticMessage], meta: { next_cursor: null } }], pageParams: [undefined] };
       }
       
       // Mapeamos las páginas para inyectar el mensaje optimista en la última página
@@ -64,7 +59,7 @@ export function useMutateChatMessages(channel_uuid) {
       // Luego actualizamos la primera página (la más nueva)
       newPages[0] = { 
         ...newPages[0], 
-        messages: [optimisticMessage, ...newPages[0].messages] 
+        data: [optimisticMessage, ...newPages[0].data] 
       };
 
 
@@ -86,7 +81,7 @@ export function useMutateChatMessages(channel_uuid) {
 
     // CICLO DE VIDA: onSettled (Sincronizar la verdad absoluta)
     onSettled: () => {
-      // Invalidamos para que React Query haga un refetch y obtenga la lista real del "server"
+      // ✅ [Vyne-Rule-3]: Refresca silenciosamente en segundo plano para sincronizar la verdad absoluta.
       queryClient.invalidateQueries({ queryKey: ['messages', channel_uuid] });
     },
   });

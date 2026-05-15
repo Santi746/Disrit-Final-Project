@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClubService } from "@/services/club.service";
 
 /**
  * @file useMutateEditCategory.js
@@ -18,44 +19,31 @@ export function useMutateEditCategory(clubUuid) {
 
   return useMutation({
     /**
-     * @param {Object} params
-     * @param {string} params.client_uuid - UUID de la mutación (Regla #2).
-     * @param {string} params.category_uuid - UUID de la categoría a editar.
-     * @param {string} params.name - Nuevo nombre.
-     * @param {boolean} params.is_private - Nueva privacidad.
+     * mutationFn — Delegado a la Capa de Servicios
      */
     mutationFn: async ({ client_uuid, category_uuid, name, is_private }) => {
-      // ❌ [Vyne-Delete-On-Backend]: Simulación
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // ✅ [Vyne-Replacement]:
-      // const response = await axios.patch(`/api/clubs/${clubUuid}/categories/${category_uuid}`, { name, is_private });
-      // return response.data;
-
-      return { uuid: category_uuid, name, is_private };
+      const response = await ClubService.editCategory(clubUuid, { category_uuid, name, is_private });
+      return response.data;
     },
 
     onMutate: async (variables) => {
       const { category_uuid, name, is_private } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["club", clubUuid] });
+      await queryClient.cancelQueries({ queryKey: ["club_categories", clubUuid] });
 
-      const previousClub = queryClient.getQueryData(["club", clubUuid]);
+      const previousCategories = queryClient.getQueryData(["club_categories", clubUuid]);
 
-      queryClient.setQueryData(["club", clubUuid], (old) => {
+      queryClient.setQueryData(["club_categories", clubUuid], (old) => {
         if (!old) return old;
-        return {
-          ...old,
-          categories: old.categories.map((cat) => {
-            if (cat.uuid === category_uuid) {
-              return { ...cat, name, is_private, status: "saving" };
-            }
-            return cat;
-          }),
-        };
+        return old.map((cat) => {
+          if (cat.uuid === category_uuid) {
+            return { ...cat, name, is_private, status: "saving" };
+          }
+          return cat;
+        });
       });
 
-      return { previousClub };
+      return { previousCategories };
     },
 
     onError: (err, variables, context) => {
@@ -63,13 +51,13 @@ export function useMutateEditCategory(clubUuid) {
         description: err.message || "Inténtalo de nuevo más tarde.",
       });
 
-      if (context?.previousClub) {
-        queryClient.setQueryData(["club", clubUuid], context.previousClub);
+      if (context?.previousCategories) {
+        queryClient.setQueryData(["club_categories", clubUuid], context.previousCategories);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["club", clubUuid] });
+      queryClient.invalidateQueries({ queryKey: ["club_categories", clubUuid] });
     },
 
     onSuccess: (data) => {

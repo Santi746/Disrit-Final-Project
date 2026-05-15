@@ -94,8 +94,8 @@ export default function Sidebar() {
         icon={<FiMessageSquare size={24} />}
         name="Mensajes"
         className="flex"
-        onClick={() => router.push("/channels/@me")}
-        active={pathname.startsWith("/channels/@me") || pathname.startsWith("/channels/%40me")}
+        onClick={() => router.push("/me")}
+        active={pathname.startsWith("/me")}
       />
 
       {/* 6. Buscar (Solo PC) */}

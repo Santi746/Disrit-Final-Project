@@ -6,22 +6,21 @@ import ChatMessageList from "@/shared/components/ui/organisms/messaging/ChatMess
 import ChatInput from "@/shared/components/ui/organisms/messaging/ChatInput";
 import { useDMChatMessages } from "@/features/chat/hooks/useDMChatMessages";
 import { useDMConversation } from "@/features/chat/hooks/useDMConversation";
-import { useReplyStore } from "@/features/chat/stores/useReplyStore";
+import { useReplyStore } from "@/shared/stores/useReplyStore";
+import { useMutateDMChatMessages } from "@/features/chat/hooks/useMutateDMChatMessages";
+import { generateClientUUID } from "@/shared/utils/uuid";
 
 /**
  * @page DMChatPage
  * @description Página de chat privado individual.
- * Reutiliza los mismos componentes de chat que los clubs.
  */
 export default function DMChatPage() {
   const params = useParams();
   const chatUuid = params.chat_uuid;
 
-  // Obtenemos los detalles de la conversación vía Hook (Abstracción de Datos)
-  const conversation = useDMConversation(chatUuid);
+  const { data: conversation, isLoading: isLoadingConversation } = useDMConversation(chatUuid);
   const participant = conversation?.participant;
 
-  // Mensajes del MD (useInfiniteQuery con cursor pagination)
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
@@ -30,12 +29,21 @@ export default function DMChatPage() {
     isFetchingNextPage,
   } = useDMChatMessages(chatUuid);
 
-  // Extraer todos los mensajes de las páginas
-  const messages = messagesData?.pages.flatMap((page) => page.messages) || [];
+  const messages = messagesData?.pages.flatMap((page) => page.data) || [];
 
-  const { replyingTo, clearReply } = useReplyStore();
+  // ── ESTADOS Y MUTACIONES ──
+  const { mutate: sendMessage } = useMutateDMChatMessages(chatUuid);
+  const { replyingTo, clearReply, setReplyingTo } = useReplyStore();
 
-  // Estado de carga o conversación no encontrada
+  const handleSendMessage = ({ content }) => {
+    sendMessage({
+      content,
+      client_uuid: generateClientUUID(),
+      parent_message_uuid: replyingTo?.uuid || null,
+    });
+    clearReply();
+  };
+
   if (!conversation) {
     return (
       <div className="flex h-screen flex-1 items-center justify-center bg-forest-deep text-forest-muted">
@@ -44,32 +52,30 @@ export default function DMChatPage() {
     );
   }
 
+  const displayName = participant?.display_name || participant?.username;
+
   return (
     <section className="bg-forest-deep flex h-full flex-1 min-w-0 flex-col">
-      {/* Header: avatar + nombre del participante + llamada */}
       <DMChatHeader participant={participant} />
 
-      {/* Área de mensajes scrolleable (REUTILIZADO de shared) */}
       <ChatMessageList
-        welcomeTitle={participant?.display_name || participant?.username}
-        welcomeDescription={`Este es el inicio de tu conversación privada con ${participant?.display_name || participant?.username}.`}
+        welcomeTitle={displayName}
+        welcomeDescription={`Este es el inicio de tu conversación privada con ${displayName}.`}
         welcomeIcon="dm"
         messages={messages}
         isLoading={isLoadingMessages}
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
+        onReply={setReplyingTo}
       />
 
-      {/* Input de chat (REUTILIZADO con context="dm") */}
       <ChatInput
-        context="dm"
-        dmUuid={chatUuid}
-        channelName={participant?.display_name || participant?.username}
+        placeholder={`Enviar mensaje a @${displayName}...`}
+        onSendMessage={handleSendMessage}
         replyingTo={replyingTo}
         onCloseReply={clearReply}
       />
     </section>
   );
 }
-

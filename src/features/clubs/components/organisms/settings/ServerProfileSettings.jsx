@@ -15,6 +15,8 @@ import SettingsSection from "@/shared/components/ui/molecules/SettingsSection";
 import SettingsStickyFooter from "@/shared/components/ui/molecules/SettingsStickyFooter";
 import { useCheckPermission } from "@/features/clubs/hooks/useCheckPermission";
 import { PERMISSIONS } from "@/shared/constants/permissions";
+import { useMutateClub } from "@/features/clubs/hooks/useMutateClub";
+import { generateClientUUID } from "@/shared/utils/uuid";
 
 import ClubPreviewCard from "../../molecules/settings/ClubPreviewCard";
 
@@ -48,7 +50,7 @@ export default function ServerProfileSettings({ club }) {
 
     mutate({
       clubUuid: club.uuid,
-      client_uuid: self.crypto.randomUUID(),
+      client_uuid: generateClientUUID(),
       name: name.trim(),
       description: description.trim()
     }, {
