@@ -1,38 +1,106 @@
-src/
-├── shared/ <-- ¡EL HUB GLOBAL!
-│ ├── components/ # UI (Átomos/Moléculas globales como Badge o Button)
-│ ├── hooks/ # Lógica reutilizable (Detector de móvil, scroll, AOS)
-│ ├── context/ # Estados globales (Navegación, Canal Abierto)
-│ └── utils/ # Funciones de ayuda (Slugify)
-│
-├── features/ # EL CEREBRO (Chat, Clubs, Dashboard, Users)
-│
-└── app/ # EL MAPA (Solo rutas: ClubPage, page.js, layout.js)
+# 🚀 Vyne: Mensajería en Tiempo Real de Alta Escalabilidad
+
+![Vyne Banner](/public/vyne_banner.png)
+
+**Vyne** es una plataforma de mensajería premium en tiempo real, diseñada para soportar escala masiva. Construida bajo una mentalidad de "Escalabilidad Primero", emula los patrones de alto rendimiento de plataformas como Discord, garantizando un flujo de datos atómico y experiencias de usuario con latencia cero.
+
+> [!IMPORTANT]
+> Este repositorio contiene la capa de **Frontend**. Está arquitectónicamente preparado para integrarse de forma fluida con un backend de alto rendimiento en Laravel 11 + Reverb (WebSockets) + PostgreSQL.
 
 ---
 
-## 🛑 BACKEND MIGRATION CHECKLIST (Reglas Vyne)
+## 🛠️ Stack Tecnológico
 
-Cuando conectemos PostgreSQL + Laravel (Reverb), debemos cumplir con estas directivas obligatorias para mantener la escalabilidad:
+- **Core:** [Next.js 15+](https://nextjs.org/) (App Router)
+- **Estado y Datos:** [TanStack Query v5](https://tanstack.com/query/latest) (React Query)
+- **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
+- **Tiempo Real:** [Laravel Echo](https://laravel.com/docs/11.x/broadcasting) & WebSockets
+- **Arquitectura:** Diseño Modular orientado a Funcionalidades (Feature-Sliced Design)
 
-- [ ] **React Query:** Instalar `@tanstack/react-query`. Prohibido usar `useState` o llamadas estáticas directas para datos. Toda la UI debe leer de la caché.
-- [ ] **UUID Cliente (Bomba Atómica):** El frontend DEBE generar un UUID (`uuidv4`) al crear un mensaje e inyectarlo en la caché antes de enviar al backend. Laravel usará ese ID para evitar duplicación.
-- [ ] **Paginación Infinita (Sin Offsets):** Las listas de mensajes o clubes deben cargarse mediante `useInfiniteQuery` pasando un `cursor` (ej. último UUID), nunca usando el `offset` tradicional.
-- [ ] **Broadcasting Minimalista:** Asegurar que los listeners (Laravel Echo) en el front no muten el estado de React localmente, sino que modifiquen la caché centralizada de React Query.
+---
 
-# TEST ANTIGRAVITY UI
+## 🏗️ Filosofía Arquitectónica (Las Reglas de Oro)
 
-notas para laravel
+Para asegurar que Vyne pueda manejar miles de usuarios y mensajes simultáneos sin degradación, el frontend sigue mandatos arquitectónicos estrictos:
 
-⚠️ 2. Alertas Tempranas para la Integración con el Backend (Laravel + PostgreSQL)
-Lo que acabamos de hacer en el frontend impone restricciones estrictas sobre cómo debes programar tu backend. Toma nota para cuando abras Laravel:
+### 1. React Query como "Única Fuente de la Verdad"
+Está prohibido el uso de `useState` para datos del servidor (mensajes, listas de usuarios, clubes). Todos los componentes consumen datos directamente de la caché de React Query. Esto previene la desincronización del estado y garantiza un flujo de datos unificado.
 
-Alerta A: El Orden del Payload (CRÍTICO)
-Nuestro frontend ahora utiliza flex-col-reverse y asume una línea temporal estricta. En Laravel, cuando hagas tu consulta a PostgreSQL, debes asegurarte de que cada "paquete" de 20 mensajes llegue en orden cronológico (del más viejo al más nuevo dentro de ese paquete). Si Laravel te devuelve los mensajes al revés (del más nuevo al más viejo), nuestra función .reverse() en page.js fallará y los mensajes se leerán de abajo hacia arriba.
+### 2. El Patrón "UUID de Cliente" (Deduplicación)
+Para evitar la "Bomba Atómica" de las condiciones de carrera (Race Conditions), cada mensaje genera un `client_uuid` en el frontend **antes** de enviarse al servidor.
+- **Update Optimista:** El mensaje se inyecta en la caché instantáneamente con estado `status: 'sending'`.
+- **Reconciliación por WebSocket:** Cuando el servidor retransmite el mensaje, el cliente lo identifica por su UUID. En lugar de duplicarlo, simplemente actualiza el estado a `sent`.
 
-En Laravel debes usar: $query->orderBy('created_at', 'asc') antes de paginar.
-Alerta B: El Cursor String
-En useChatMessages.js, configuraste pageParam como un UUID (string). Laravel 11 tiene el método cursorPaginate(), pero por defecto usa un hash opaco. Tendrás que configurar Laravel para que la paginación por cursor entienda que estás usando la columna uuid (y no el id autoincremental) para filtrar los mensajes anteriores a esa fecha/ID.
+### 3. Paginación Obligatoria por Cursores
+La paginación tradicional por `offset/limit` está prohibida. Vyne utiliza **Paginación por Cursor** (`useInfiniteQuery`) para asegurar que la llegada de nuevos mensajes no desplace la ventana de datos, evitando duplicados o saltos de información.
 
-Alerta C: Eventos Reverb (Broadcasting)
-Nuestra UI inversa asume que los mensajes nuevos se apilan en el índice 0 de la page[0]. Cuando configures el listener de Laravel Echo (window.Echo.private(...)), la función que actualice la caché deberá hacer exactamente la misma inyección que hicimos en el useMutateChatMessages.js (añadiéndolo al final de pages[0].messages).
+### 4. Mutaciones Atómicas
+Todas las mutaciones (`useMutation`) implementan un ciclo de vida de 3 fases:
+- **`onMutate`**: Feedback instantáneo en la UI (Update Optimista).
+- **`onError`**: Reversión automática de la caché a la última "verdad" conocida.
+- **`onSettled`**: Sincronización silenciosa en segundo plano.
+
+---
+
+## 📂 Estructura del Proyecto
+
+```text
+src/
+├── app/          # Capa de enrutamiento (Next.js App Router)
+├── features/     # Módulos de lógica de negocio (Chat, Clubs, Auth, Users)
+│   ├── [feature]/
+│   │   ├── components/ # UI específica del módulo
+│   │   ├── hooks/      # Hooks de React Query y lógica
+│   │   ├── services/   # Capa de abstracción de API
+│   │   └── data/       # Datos mock y esquemas
+├── shared/       # Componentes UI globales, Contextos y Utilidades
+└── services/     # Cliente API global y configuración de WebSockets
+```
+
+---
+
+## 🚀 Inicio Rápido
+
+### Requisitos Previos
+- Node.js 18+
+- npm / yarn / pnpm
+
+### Instalación
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/tu-usuario/vyne-frontend.git
+   ```
+
+2. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
+
+3. **Ejecutar el servidor de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## ⚖️ Directivas de Escalabilidad
+
+Cualquier contribución a este proyecto **debe** cumplir con lo siguiente:
+
+- **Convención de Nombres:** Todos los datos de API (peticiones/respuestas) deben usar `snake_case` para mantener la paridad con la capa PostgreSQL/Laravel.
+- **Minimalismo de Payload:** Los listeners de WebSockets solo deben inyectar los datos estrictamente necesarios.
+- **Componentes Atómicos:** Seguir principios de Diseño Atómico dentro de las carpetas `shared` y `features`.
+- **Idempotencia:** Asegurar que el `client_uuid` esté siempre presente en cualquier payload de creación.
+
+---
+
+## 📄 Licencia
+
+Distribuido bajo la Licencia MIT. Consulta `LICENSE` para más información.
+
+---
+
+<p align="center">
+  Construido con ❤️ para la Comunicación a Gran Escala.
+</p>
